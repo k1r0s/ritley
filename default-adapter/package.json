@@ -1,8 +1,8 @@
 {
-  "name": "@ritley/raw-adapter",
+  "name": "@ritley/default-adapter",
   "version": "1.0.0",
   "description": "",
-  "main": "dist/raw-adapter.cjs.js",
+  "main": "dist/default-adapter.cjs.js",
   "scripts": {
     "build": "rollup -c rollup.config.js"
   },

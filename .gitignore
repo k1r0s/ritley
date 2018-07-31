@@ -1,4 +1,4 @@
 core/node_modules/
 decorators/node_modules/
 firebase-adapter/node_modules/
-raw-adapter/node_modules/
+default-adapter/node_modules/
