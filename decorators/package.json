@@ -10,7 +10,8 @@
   "author": "k1r0s",
   "license": "ISC",
   "dependencies": {
-    "kaop-ts": "^3.1.4"
+    "kaop-ts": "^3.1.4",
+    "path-parser": "^4.2.0"
   },
   "devDependencies": {
     "babel-core": "^6.26.3",

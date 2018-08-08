@@ -2,8 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
+
 var kaop = require('kaop');
 var kaopTs = require('kaop-ts');
+var Path = _interopDefault(require('path-parser'));
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
@@ -11,6 +14,27 @@ var Dependency = function Dependency(prop, provider) {
   var _inject$assign;
 
   return kaopTs.beforeInstance(kaop.inject.assign((_inject$assign = {}, _inject$assign[prop] = provider, _inject$assign)));
+};
+
+var Method = {
+  get: function get(path) {
+    return function (proto, key, descriptor) {
+      var GET_METHOD_DECORATOR_META_KEY = "ritley-listeners";
+      var listeners = Reflect.getMetadata(GET_METHOD_DECORATOR_META_KEY, proto);
+      if (!listeners) listeners = [];
+      if (!proto.get) proto.get = function (req, res) {
+        var _this = this;
+
+        var predicate = function predicate(listener) {
+          return Path.createPath("/" + _this.$uri + listener.path).test(req.url);
+        };
+        var found = listeners.find(predicate);
+        if (found) this[found.key](req, res, predicate(found));else BadRequest({ args: [undefined, res] });
+      };
+      listeners.push({ path: path, key: key });
+      Reflect.defineMetadata(GET_METHOD_DECORATOR_META_KEY, listeners, proto);
+    };
+  }
 };
 
 var Default = function Default(success) {
@@ -77,6 +101,7 @@ var resolveMethod = function resolveMethod(meta, code, content) {
 };
 
 exports.Dependency = Dependency;
+exports.Method = Method;
 exports.Default = Default;
 exports.Catch = Catch;
 exports.Ok = Ok;
