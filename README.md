@@ -35,33 +35,32 @@ Like React does, your resources will extend from `AbstractResource` to be able t
 So this is pretty straightforward:
 
 ```javascript
+const Ritley = require("@ritley/core");
 
-import Ritley from "@ritley/core";
+// use an adapter (as we're going to create the
+// node instance we use this one)
+const Adapter = require("@ritley/default-adapter");
 
-// use an adapter (for now, only raw (standalone) or firebase)
-import Adapter from "@ritley/default-adapter";
-
-// create an instance of the adapter
+// initialize the adapter
 new Adapter({
   "port": 8080
 });
 
 // create a resource that listens get calls
-class DummyResource extends Ritley.AbstractResource {
+class DefaultResource extends Ritley.AbstractResource {
   get(req, res) {
     res.statusCode = 200;
-    res.write("Hello World!")
-    res.end();
+    res.end("Hello World!");
   }
 }
 
 // create an instance with a specific route
-new DummyResource();
+new DefaultResource();
 ```
 
 Now by doing `curl localhost:8080` you'll get a nice Hello World!
 
 #### Roadmap
-- Create examples for advanced behaviors
 - Setup testing
+- Create examples for advanced behaviors
 - SSL support
