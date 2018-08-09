@@ -10,10 +10,9 @@ The project is now separated in several parts that you may use as you see fit.
 
 #### Packages
 
-- @ritley/core: provides `setAdapter` and `AbstractResource`
-- @ritley/default-adapter: provides working env to run your project anywhere with nodejs
-- @ritley/firebase-adapter: provides needed stuff to be deployed on firebase env
-- @ritley/decorators: provides a set of useful abstractions that will reduce your boilerplate
+- @ritley/core: provides `BaseAdapter` and `AbstractResource`
+- @ritley/default-adapter: provides a boilerplate to run your project anywhere with nodejs
+- @ritley/decorators: provides a set of useful abstractions that will reduce your codebase
 
 #### Get v1
 
@@ -27,7 +26,7 @@ Ritley its just a wrapper of Node's default http package. You don't have to worr
 
 This library aims to provide a friendly development experience while you build scalable services using an API that you already know how to use within a sort of guidelines.
 
-I strongly believe that OOP programming should be the mainframe when designing enterprise world applications. You can/must use any other technique where is necessary like FP, FRP, AOP, and so on...
+I strongly believe that OOP programming should be the mainframe when designing enterprise world applications. Ritley empowers this and is compatible with other Paradigms and Techniques, so you can/must use any other technique where its necessary like FP, FRP, AOP, and so on...
 
 Ritley just provides the basics to sort and separate your code into domains as a logic placeholders and let you share only what you need.
 
@@ -40,15 +39,12 @@ So this is pretty straightforward:
 import Ritley from "@ritley/core";
 
 // use an adapter (for now, only raw (standalone) or firebase)
-import RawAdapter from "@ritley/raw-adapter";
+import Adapter from "@ritley/default-adapter";
 
 // create an instance of the adapter
-const config = new RawAdapter({
+new Adapter({
   "port": 8080
 });
-
-// set the adapter for all instances
-Ritley.setAdapter(config);
 
 // create a resource that listens get calls
 class DummyResource extends Ritley.AbstractResource {
@@ -60,10 +56,10 @@ class DummyResource extends Ritley.AbstractResource {
 }
 
 // create an instance with a specific route
-new DummyResource("dummy");
+new DummyResource();
 ```
 
-Now by doing `curl localhost:8080/dummy` you'll get a nice Hello World!
+Now by doing `curl localhost:8080` you'll get a nice Hello World!
 
 #### Roadmap
 - Create examples for advanced behaviors

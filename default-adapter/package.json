@@ -9,8 +9,8 @@
   "keywords": [],
   "author": "k1r0s",
   "license": "ISC",
-  "peerDependencies": {
-    "@ritley/core": "^1.0.0"
+  "dependencies": {
+    "@ritley/core": "file:../core"
   },
   "devDependencies": {
     "babel-core": "^6.26.3",
