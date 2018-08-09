@@ -17,12 +17,12 @@ var Dependency = function Dependency(prop, provider) {
 };
 
 var Method = {
-  get: function get(path) {
+  _createMethodWrap: function _createMethodWrap(method, path) {
     return function (proto, key, descriptor) {
-      var GET_METHOD_DECORATOR_META_KEY = "ritley-listeners";
-      var listeners = Reflect.getMetadata(GET_METHOD_DECORATOR_META_KEY, proto);
+      var METHOD_DECORATOR_META_KEY = "ritley-listeners-" + method;
+      var listeners = Reflect.getMetadata(METHOD_DECORATOR_META_KEY, proto);
       if (!listeners) listeners = [];
-      if (!proto.get) proto.get = function (req, res) {
+      if (!proto[method]) proto[method] = function (req, res) {
         var _this = this;
 
         var predicate = function predicate(listener) {
@@ -32,8 +32,20 @@ var Method = {
         if (found) this[found.key](req, res, predicate(found));else BadRequest({ args: [undefined, res] });
       };
       listeners.push({ path: path, key: key });
-      Reflect.defineMetadata(GET_METHOD_DECORATOR_META_KEY, listeners, proto);
+      Reflect.defineMetadata(METHOD_DECORATOR_META_KEY, listeners, proto);
     };
+  },
+  get: function get(path) {
+    return Method._createMethodWrap("get", path);
+  },
+  post: function post(path) {
+    return Method._createMethodWrap("post", path);
+  },
+  put: function put(path) {
+    return Method._createMethodWrap("put", path);
+  },
+  delete: function _delete(path) {
+    return Method._createMethodWrap("delete", path);
   }
 };
 

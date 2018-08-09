@@ -5,22 +5,24 @@ import Path from "path-parser";
 export const Dependency = (prop, provider) => beforeInstance(inject.assign({ [prop]: provider }));
 
 export const Method = {
-  get: function(path) {
-    return function(proto, key, descriptor) {
-      const GET_METHOD_DECORATOR_META_KEY = "ritley-listeners";
-      let listeners = Reflect.getMetadata(GET_METHOD_DECORATOR_META_KEY, proto);
-      if(!listeners) listeners = [];
-      if(!proto.get) proto.get = function(req, res) {
-        const predicate = listener =>
-          Path.createPath("/" + this.$uri + listener.path).test(req.url);
-        const found = listeners.find(predicate);
-        if(found) this[found.key](req, res, predicate(found));
-        else BadRequest({ args: [undefined, res] });
-      }
-      listeners.push({ path, key });
-      Reflect.defineMetadata(GET_METHOD_DECORATOR_META_KEY, listeners, proto);
+  _createMethodWrap: (method, path) => (proto, key, descriptor) => {
+    const METHOD_DECORATOR_META_KEY = `ritley-listeners-${method}`;
+    let listeners = Reflect.getMetadata(METHOD_DECORATOR_META_KEY, proto);
+    if(!listeners) listeners = [];
+    if(!proto[method]) proto[method] = function(req, res) {
+      const predicate = listener =>
+        Path.createPath("/" + this.$uri + listener.path).test(req.url);
+      const found = listeners.find(predicate);
+      if(found) this[found.key](req, res, predicate(found));
+      else BadRequest({ args: [undefined, res] });
     }
-  }
+    listeners.push({ path, key });
+    Reflect.defineMetadata(METHOD_DECORATOR_META_KEY, listeners, proto);
+  },
+  get: path => Method._createMethodWrap("get", path),
+  post: path => Method._createMethodWrap("post", path),
+  put: path => Method._createMethodWrap("put", path),
+  delete: path => Method._createMethodWrap("delete", path)
 }
 
 export const Default = success => afterMethod(meta => {
