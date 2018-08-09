@@ -41,4 +41,38 @@ class AbstractResource {
   }
 }
 
-module.exports = { AbstractResource, setAdapter: instance => AbstractResource.instance = instance }
+export class BaseAdapter {
+
+  constructor(config) {
+    this.listeners = [];
+    if(config) this.config = config;
+    else this.config = {};
+    AbstractResource.instance = this;
+  }
+
+  handle(req, res) {
+    const timeout = setTimeout(this.timeout, 0, res);
+    this.listeners.forEach(instance => {
+      if(this.requestAllowed(req.url, instance.$uri)) {
+        instance.onRequest(req, res);
+        clearTimeout(timeout);
+      }
+    })
+  }
+
+  requestAllowed(url, abspath) {
+    const absolutePath = (this.config.base || "/") + abspath;
+    return url.startsWith(absolutePath);
+  }
+
+  register(resourceInstance) {
+    this.listeners.push(resourceInstance);
+  }
+
+  timeout(res) {
+    res.statusCode = 404;
+    res.end();
+  }
+}
+
+module.exports = { BaseAdapter, AbstractResource }

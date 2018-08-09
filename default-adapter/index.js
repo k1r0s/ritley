@@ -1,53 +1,27 @@
 const http = require("http");
+const { BaseAdapter } = require("@ritley/core");
 
-class StandaloneAdapter {
+class StandaloneAdapter extends BaseAdapter {
   constructor(config) {
-    this.config = config;
-    this.listeners = [];
-    this.server = this.createServer(config.port);
-    if(config.static) {
-      this.setStaticSrv(this.server, config.static, config.base);
+    super(config);
+    this.server = this.createServer();
+    if(this.config.static) {
+      this.setStaticSrv();
     }
   }
 
-  createServer(port) {
+  createServer() {
     const nodeInstance = http.createServer();
-    nodeInstance.listen(port);
+    nodeInstance.listen(this.config.port);
     nodeInstance.on("request", (...args) => this.handle(...args));
-    console.log(`running on port ${port}`);
     return nodeInstance;
   }
 
-  setStaticSrv(srv, staticPath, basePath) {
+  setStaticSrv() {
     const ecstatic = require("ecstatic");
-    const staticMiddleware = ecstatic({ root: `${staticPath}`, handleError: false });
-    srv.on("request", (req, res) =>
-      !req.url.startsWith(basePath) && staticMiddleware(req, res));
-    console.log(`serving ${staticPath} as a static content`);
-  }
-
-  handle(req, res) {
-    const timeout = setTimeout(this.timeout, 0, res);
-    this.listeners.forEach(instance => {
-      if(this.requestAllowed(req.url, instance.$uri)) {
-        instance.onRequest(req, res);
-        clearTimeout(timeout);
-      }
-    })
-  }
-
-  register(resourceInstance) {
-    this.listeners.push(resourceInstance);
-  }
-
-  timeout(res) {
-    res.statusCode = 404;
-    res.end("not found!");
-  }
-
-  requestAllowed(url, abspath) {
-    const absolutePath = (this.config.base || "/") + abspath;
-    return url.startsWith(absolutePath);
+    const staticMiddleware = ecstatic({ root: `${this.config.static}`, handleError: false });
+    this.server.on("request", (req, res) =>
+      !req.url.startsWith(this.config.base) && staticMiddleware(req, res));
   }
 
 }

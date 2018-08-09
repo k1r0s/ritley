@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var url = require("url");
@@ -65,6 +67,44 @@ var AbstractResource = function () {
   return AbstractResource;
 }();
 
-module.exports = { AbstractResource: AbstractResource, setAdapter: function setAdapter(instance) {
-    return AbstractResource.instance = instance;
-  } };
+var BaseAdapter = function () {
+  function BaseAdapter(config) {
+    _classCallCheck(this, BaseAdapter);
+
+    this.listeners = [];
+    if (config) this.config = config;else this.config = {};
+    AbstractResource.instance = this;
+  }
+
+  BaseAdapter.prototype.handle = function handle(req, res) {
+    var _this3 = this;
+
+    var timeout = setTimeout(this.timeout, 0, res);
+    this.listeners.forEach(function (instance) {
+      if (_this3.requestAllowed(req.url, instance.$uri)) {
+        instance.onRequest(req, res);
+        clearTimeout(timeout);
+      }
+    });
+  };
+
+  BaseAdapter.prototype.requestAllowed = function requestAllowed(url, abspath) {
+    var absolutePath = (this.config.base || "/") + abspath;
+    return url.startsWith(absolutePath);
+  };
+
+  BaseAdapter.prototype.register = function register(resourceInstance) {
+    this.listeners.push(resourceInstance);
+  };
+
+  BaseAdapter.prototype.timeout = function timeout(res) {
+    res.statusCode = 404;
+    res.end();
+  };
+
+  return BaseAdapter;
+}();
+
+module.exports = { BaseAdapter: BaseAdapter, AbstractResource: AbstractResource };
+
+exports.BaseAdapter = BaseAdapter;
