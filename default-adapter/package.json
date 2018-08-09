@@ -1,6 +1,6 @@
 {
   "name": "@ritley/default-adapter",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "",
   "main": "dist/default-adapter.cjs.js",
   "scripts": {
@@ -10,7 +10,10 @@
   "author": "k1r0s",
   "license": "ISC",
   "dependencies": {
-    "@ritley/core": "file:../core"
+    "@ritley/core": "^0.0.1"
+  },
+  "peerDependencies": {
+    "ecstatic": "^3.2.1"
   },
   "devDependencies": {
     "babel-core": "^6.26.3",
