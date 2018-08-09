@@ -52,15 +52,16 @@ export class BaseAdapter {
 
   handle(req, res) {
     const timeout = setTimeout(this.timeout, 0, res);
-    this.listeners.forEach(instance => {
+    for (let i = 0; i < this.listeners.length; i++) {
+      const instance = this.listeners[i];
       if(this.requestAllowed(req.url, instance.$uri)) {
         instance.onRequest(req, res);
         clearTimeout(timeout);
       }
-    })
+    }
   }
 
-  requestAllowed(url, abspath) {
+  requestAllowed(url, abspath = "") {
     const absolutePath = (this.config.base || "/") + abspath;
     return url.startsWith(absolutePath);
   }

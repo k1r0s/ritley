@@ -77,18 +77,19 @@ var BaseAdapter = function () {
   }
 
   BaseAdapter.prototype.handle = function handle(req, res) {
-    var _this3 = this;
-
     var timeout = setTimeout(this.timeout, 0, res);
-    this.listeners.forEach(function (instance) {
-      if (_this3.requestAllowed(req.url, instance.$uri)) {
+    for (var i = 0; i < this.listeners.length; i++) {
+      var instance = this.listeners[i];
+      if (this.requestAllowed(req.url, instance.$uri)) {
         instance.onRequest(req, res);
         clearTimeout(timeout);
       }
-    });
+    }
   };
 
-  BaseAdapter.prototype.requestAllowed = function requestAllowed(url, abspath) {
+  BaseAdapter.prototype.requestAllowed = function requestAllowed(url) {
+    var abspath = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : "";
+
     var absolutePath = (this.config.base || "/") + abspath;
     return url.startsWith(absolutePath);
   };
