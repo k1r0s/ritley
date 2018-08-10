@@ -1,0 +1,28 @@
+{
+  "name": "ritley-lib",
+  "version": "1.0.0",
+  "description": "<p align=\"center\">   <a><img src=\"https://i.imgur.com/6BKD8jW.png\"></a>   <h2>Ritley JS</h2> </p>",
+  "main": "index.js",
+  "directories": {
+    "example": "example",
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/k1r0s/ritley.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/k1r0s/ritley/issues"
+  },
+  "homepage": "https://github.com/k1r0s/ritley#readme",
+  "devDependencies": {
+    "mocha": "^5.2.0",
+    "sinon": "^6.1.5"
+  }
+}

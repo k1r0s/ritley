@@ -6,13 +6,19 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 var url = require("url");
 
+var $adapter = null;
+
+var normalizeUrl = function normalizeUrl(path) {
+  return path ? "/" + path : "";
+};
+
 var AbstractResource = function () {
   function AbstractResource(_uri) {
     _classCallCheck(this, AbstractResource);
 
     this.$uri = _uri;
-    this.$srv = AbstractResource.instance;
-    this.$srv.register(this);
+    this.adapter = $adapter;
+    this.adapter.register(this);
   }
 
   AbstractResource.prototype.onRequest = function onRequest(req, res) {
@@ -73,7 +79,7 @@ var BaseAdapter = function () {
 
     this.listeners = [];
     if (config) this.config = config;else this.config = {};
-    AbstractResource.instance = this;
+    $adapter = this;
   }
 
   BaseAdapter.prototype.handle = function handle(req, res) {
@@ -87,11 +93,9 @@ var BaseAdapter = function () {
     }
   };
 
-  BaseAdapter.prototype.requestAllowed = function requestAllowed(url) {
-    var abspath = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : "";
-
-    var absolutePath = (this.config.base || "/") + abspath;
-    return url.startsWith(absolutePath);
+  BaseAdapter.prototype.requestAllowed = function requestAllowed(url, instanceUri) {
+    var matchingUrl = normalizeUrl(this.config.base) + normalizeUrl(instanceUri);
+    return url.startsWith(matchingUrl);
   };
 
   BaseAdapter.prototype.register = function register(resourceInstance) {

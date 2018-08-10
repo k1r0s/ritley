@@ -1,11 +1,15 @@
 const url = require("url");
 
+let $adapter = null;
+
+const normalizeUrl = path => path ? "/" + path: "";
+
 class AbstractResource {
 
   constructor(_uri) {
     this.$uri = _uri;
-    this.$srv = AbstractResource.instance;
-    this.$srv.register(this);
+    this.adapter = $adapter;
+    this.adapter.register(this);
   }
 
   onRequest(req, res) {
@@ -47,7 +51,7 @@ export class BaseAdapter {
     this.listeners = [];
     if(config) this.config = config;
     else this.config = {};
-    AbstractResource.instance = this;
+    $adapter = this;
   }
 
   handle(req, res) {
@@ -61,9 +65,9 @@ export class BaseAdapter {
     }
   }
 
-  requestAllowed(url, abspath = "") {
-    const absolutePath = (this.config.base || "/") + abspath;
-    return url.startsWith(absolutePath);
+  requestAllowed(url, instanceUri) {
+    const matchingUrl = normalizeUrl(this.config.base) + normalizeUrl(instanceUri);
+    return url.startsWith(matchingUrl);
   }
 
   register(resourceInstance) {

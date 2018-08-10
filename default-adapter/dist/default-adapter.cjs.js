@@ -43,7 +43,7 @@ var StandaloneAdapter = function (_BaseAdapter) {
     var ecstatic = require("ecstatic");
     var staticMiddleware = ecstatic({ root: "" + this.config.static, handleError: false });
     this.server.on("request", function (req, res) {
-      return !req.url.startsWith(_this3.config.base) && staticMiddleware(req, res);
+      return !req.url.startsWith("/" + _this3.config.base) && staticMiddleware(req, res);
     });
   };
 
