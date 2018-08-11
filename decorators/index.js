@@ -1,11 +1,11 @@
-import { inject } from "kaop";
-import { afterMethod, beforeInstance } from "kaop-ts";
-import Path from "path-parser";
+const { inject } = require("kaop");
+const { afterMethod, beforeInstance } = require("kaop-ts");
 
 export const Dependency = (prop, provider) => beforeInstance(inject.assign({ [prop]: provider }));
 
 export const Method = {
   _createMethodWrap: (method, path) => (proto, key, descriptor) => {
+    const Path = require("path-parser");
     const METHOD_DECORATOR_META_KEY = `ritley-listeners-${method}`;
     let listeners = Reflect.getMetadata(METHOD_DECORATOR_META_KEY, proto);
     if(!listeners) listeners = [];
@@ -24,6 +24,24 @@ export const Method = {
   put: path => Method._createMethodWrap("put", path),
   delete: path => Method._createMethodWrap("delete", path)
 }
+
+export const ReqTransformQuery = beforeMethod(meta => {
+  const [req, res] = meta.args;
+  const url = require("url");
+  req.query = url.parse(req.url, true).query;
+});
+
+export const ReqTransformBody = beforeMethod(meta => {
+  const [req, res] = meta.args;
+  const body = [];
+  req.on("data", d => body.push(d));
+  req.on("end", () => {
+    req.buffer = buffer;
+    req.body = buffer.toString();
+    req.toJSON = () => JSON.parse(buffer.toString());
+    meta.commit();
+  });
+});
 
 export const Default = success => afterMethod(meta => {
   if(meta.result instanceof Promise) {
@@ -68,20 +86,3 @@ const resolveMethod = (meta, code, content) => {
   }
   res.end();
 }
-
-// onRequest(req, res) {
-//   const body = [];
-//   req.on("data", d => body.push(d));
-//   req.on("end", () => this.dispatch(req, res, Buffer.concat(body)));
-// }
-//
-// dispatch(req, res, buffer) {
-//   req.query = url.parse(req.url, true).query;
-//   req.buffer = buffer;
-//   req.body = buffer.toString();
-//   req.toJSON = () => JSON.parse(buffer.toString());
-//
-//   const methodName = req.method.toLowerCase();
-//   if(typeof this[methodName] !== "function") return console.warn(`unhandled '${methodName}' request on ${this.$uri} resource`);
-//   this[methodName](req, res);
-// }

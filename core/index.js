@@ -1,5 +1,3 @@
-const url = require("url");
-
 let $adapter = null;
 
 const normalizeUrl = path => path ? path: "";
