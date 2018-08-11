@@ -1,8 +1,8 @@
 {
-  "name": "@ritley/default-adapter",
-  "version": "0.0.1",
+  "name": "@ritley/standalone-adapter",
+  "version": "0.1.0",
   "description": "",
-  "main": "dist/default-adapter.cjs.js",
+  "main": "dist/standalone-adapter.cjs.js",
   "scripts": {
     "build": "rollup -c rollup.config.js"
   },
@@ -10,7 +10,7 @@
   "author": "k1r0s",
   "license": "ISC",
   "dependencies": {
-    "@ritley/core": "^0.0.1"
+    "@ritley/core": "^0.1.0"
   },
   "peerDependencies": {
     "ecstatic": "^3.2.1"

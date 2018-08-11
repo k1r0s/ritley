@@ -1,6 +1,6 @@
 {
   "name": "@ritley/core",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "",
   "main": "dist/ritley.cjs.js",
   "scripts": {
