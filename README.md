@@ -8,17 +8,28 @@ Ritley is a small package __with ZERO dependencies__ that allows you to create s
 
 The project is now separated in several parts that you may use as you see fit.
 
-#### Packages
-
-- @ritley/core: provides `BaseAdapter` and `AbstractResource`
-- @ritley/default-adapter: provides a boilerplate to run your project anywhere with nodejs
-- @ritley/decorators: provides a set of useful abstractions that will reduce your codebase
-
 #### Get v1
 
 This repo is intended to be a complete override of v1
 
 You can check ritley-v1 [here](https://github.com/k1r0s/ritley-v1)
+
+#### Features
+
+- As fast as [fastify](https://github.com/fastify/fastify)
+- Tiny
+- Scalable
+- Progressive
+- High level extensions
+- Easy to master
+
+#### Packages
+
+- @ritley/core: provides `BaseAdapter` and `AbstractResource`
+- @ritley/standalone-adapter: provides the standalone adapter which will create a nodejs server and bind it to ritley
+- @ritley/decorators: provides a set of useful abstractions that will reduce your codebase
+
+> Why too many packages? maybe you don't like decorators or perhaps our abstractions doesn't fit for you so you don't want `@ritley/decorators`. Perhaps you're working with _Firebase_ so you don't need to create a nodejs instance yourself so you don't need `@ritley/standalone-adapter` pkg.
 
 #### Philosophy
 
@@ -39,9 +50,9 @@ const Ritley = require("@ritley/core");
 
 // use an adapter (as we're going to create the
 // node instance we use this one)
-const Adapter = require("@ritley/default-adapter");
+const Adapter = require("@ritley/standalone-adapter");
 
-// initialize the adapter
+// initialize the adapter (start nodejs)
 new Adapter({
   "port": 8080
 });
@@ -54,9 +65,12 @@ class DefaultResource extends Ritley.AbstractResource {
   }
 }
 
-// create an instance with a specific route
-new DefaultResource();
+// create an instance without route (will listen any route starting with "/")
+new DefaultResource;
+// new DefaultResource("/cat"); // listen only /cat reqiests
 ```
+
+_Adapters_ define how requests are sent to resources, _Resources_ define how requests are handled. In previous example `new Adapter(...)` instantiates an standalone adapter which will create a __nodejs instance__ and will bind forthcoming resources to listen request from it.
 
 Now by doing `curl localhost:8080` you'll get a nice Hello World!
 
