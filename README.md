@@ -75,6 +75,6 @@ _Adapters_ define how requests are sent to resources, _Resources_ define how req
 Now by doing `curl localhost:8080` you'll get a nice Hello World!
 
 #### Roadmap
-- Setup testing
+- ~~Setup testing~~
 - Create examples for advanced behaviors
 - SSL support
