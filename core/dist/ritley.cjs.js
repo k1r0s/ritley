@@ -55,16 +55,18 @@ var AbstractResource = function () {
 
     return {
       args: function args() {
-        for (var _len2 = arguments.length, _args = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-          _args[_key2] = arguments[_key2];
+        for (var _len2 = arguments.length, initialArgs = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+          initialArgs[_key2] = arguments[_key2];
         }
 
         return new Promise(function (resolve) {
-          var caller = function caller(prevResult) {
+          var caller = function caller(args) {
             var task = tasks.shift();
-            if (task) task.call.apply(task, [_this2].concat(_args.concat(prevResult))).then(caller, function () {});else resolve(prevResult);
+            if (task) task.apply(_this2, args).then(function (result) {
+              return caller(args.concat(result));
+            }, function () {});else resolve(args.pop());
           };
-          caller();
+          caller(initialArgs);
         });
       }
     };

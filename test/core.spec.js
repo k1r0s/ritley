@@ -152,4 +152,78 @@ describe("ritley's core suite", () => {
       assert.deepEqual(context2.listeners.reduce((a, b) => a + b), 6);
     });
   })
+
+  describe("AbstractResource method suite", () => {
+
+    const context = { $uri: "cat", adapter: null, get() {}, post() {}, put() {}, delete() {} };
+
+    beforeEach(() => {
+      sinon.stub(context, "get");
+      sinon.stub(context, "post");
+      sinon.stub(context, "put");
+      sinon.stub(context, "delete");
+    })
+
+    afterEach(() => {
+      context.get.restore();
+      context.post.restore();
+      context.put.restore();
+      context.delete.restore();
+    });
+
+    it("[METHOD] ::onRequest should be able to concat all data from request", done => {
+
+      const onRequestStub = wrapInvoke(AbstractResource, "onRequest");
+
+      const phrase = "roses are red";
+
+      const reqWithPayloadStub = { ...reqStub, on(ev, cbk) {
+        if(ev === "data") phrase.split(" ").forEach(str => cbk(Buffer.from(str)));
+        if(ev === "end") setTimeout(cbk, 5);
+      } };
+
+      const context2 = { ...context, dispatch: sinon.stub() };
+
+      onRequestStub(context2, reqWithPayloadStub, 123);
+
+      setTimeout(() => {
+        sinon.assert.calledWith(context2.dispatch, reqWithPayloadStub, 123, Buffer.from(phrase.replace(/\s/g, "")));
+        done();
+      }, 10);
+    });
+
+    it("[METHOD] ::dispatch should be able to transform request and invoke corresponding method if defined", () => {
+      const dispathStub = wrapInvoke(AbstractResource, "dispatch");
+
+      const reqWithParams = { ...reqStub, url: "/cat?name=barsik", method: "PUT" };
+
+      dispathStub(context, reqWithParams, 123, Buffer.from('{"name":"barsik"}'));
+
+      sinon.assert.calledWith(context.put, reqWithParams);
+      sinon.assert.notCalled(context.post);
+      sinon.assert.notCalled(context.get);
+      sinon.assert.notCalled(context.delete);
+
+      assert.deepEqual(reqWithParams.query, {"name":"barsik"});
+      assert.deepEqual(reqWithParams.body, '{"name":"barsik"}');
+      assert.deepEqual(reqWithParams.toJSON(), {"name":"barsik"});
+      assert.deepEqual(reqWithParams.buffer, Buffer.from('{"name":"barsik"}'));
+    });
+
+    it("[METHOD] ::mergeTasks should be able to invoke functions that returns promises appending arguments", done => {
+      const mergeTasksStub = wrapInvoke(AbstractResource, "mergeTasks");
+
+      const task0 = sinon.stub().returns(Promise.resolve("Look"));
+      const task1 = sinon.stub().returns(Promise.resolve("Like"));
+      const task2 = sinon.stub().returns(Promise.resolve("A Bicth?"));
+
+      mergeTasksStub(null, task0, task1, task2, (...args) => {
+        assert.deepEqual(args.join(" "), "Do I Look Like A Bicth?");
+        return Promise.resolve("The End!");
+      }).args("Do", "I").then(result => {
+        assert.deepEqual(result, "The End!");
+        done();
+      });
+    });
+  });
 });

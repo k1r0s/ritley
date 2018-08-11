@@ -31,14 +31,14 @@ class AbstractResource {
 
   mergeTasks(...tasks) {
     return {
-      args: (...args) => {
+      args: (...initialArgs) => {
         return new Promise((resolve) => {
-          const caller = prevResult => {
+          const caller = args => {
             const task = tasks.shift();
-            if(task) task.call(this, ...args.concat(prevResult)).then(caller, () => {});
-            else resolve(prevResult);
+            if(task) task.apply(this, args).then(result => caller(args.concat(result)), () => {});
+            else resolve(args.pop());
           };
-          caller();
+          caller(initialArgs);
         })
       }
     }
