@@ -171,7 +171,7 @@ describe("ritley's core suite", () => {
       context.delete.restore();
     });
 
-    it("[METHOD] ::onRequest should be able to concat all data from request", done => {
+    it.skip("[deprecated] ::onRequest should be able to concat all data from request", done => {
 
       const onRequestStub = wrapInvoke(AbstractResource, "onRequest");
 
@@ -192,7 +192,7 @@ describe("ritley's core suite", () => {
       }, 10);
     });
 
-    it("[METHOD] ::dispatch should be able to transform request and invoke corresponding method if defined", () => {
+    it.skip("[deprecated] ::dispatch should be able to transform request and invoke corresponding method if defined", () => {
       const dispathStub = wrapInvoke(AbstractResource, "dispatch");
 
       const reqWithParams = { ...reqStub, url: "/cat?name=barsik", method: "PUT" };
@@ -208,6 +208,19 @@ describe("ritley's core suite", () => {
       assert.deepEqual(reqWithParams.body, '{"name":"barsik"}');
       assert.deepEqual(reqWithParams.toJSON(), {"name":"barsik"});
       assert.deepEqual(reqWithParams.buffer, Buffer.from('{"name":"barsik"}'));
+    });
+
+    it("[METHOD] ::onRequest should only dispatch to corresponding implemented method", () => {
+      const onRequestStub = wrapInvoke(AbstractResource, "onRequest");
+
+      const reqStubPut = { ...reqStub, method: "PUT" };
+
+      onRequestStub(context, reqStubPut, 123);
+
+      sinon.assert.calledWith(context.put, reqStubPut);
+      sinon.assert.notCalled(context.post);
+      sinon.assert.notCalled(context.get);
+      sinon.assert.notCalled(context.delete);
     });
 
     it("[METHOD] ::mergeTasks should be able to invoke functions that returns promises appending arguments", done => {

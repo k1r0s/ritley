@@ -22,32 +22,30 @@ var AbstractResource = function () {
   }
 
   AbstractResource.prototype.onRequest = function onRequest(req, res) {
-    var _this = this;
-
-    var body = [];
-    req.on("data", function (d) {
-      return body.push(d);
-    });
-    req.on("end", function () {
-      return _this.dispatch(req, res, Buffer.concat(body));
-    });
-  };
-
-  AbstractResource.prototype.dispatch = function dispatch(req, res, buffer) {
-    req.query = url.parse(req.url, true).query;
-    req.buffer = buffer;
-    req.body = buffer.toString();
-    req.toJSON = function () {
-      return JSON.parse(buffer.toString());
-    };
-
     var methodName = req.method.toLowerCase();
     if (typeof this[methodName] !== "function") return console.warn("unhandled '" + methodName + "' request on " + this.$uri + " resource");
     this[methodName](req, res);
   };
 
+  // onRequest(req, res) {
+  //   const body = [];
+  //   req.on("data", d => body.push(d));
+  //   req.on("end", () => this.dispatch(req, res, Buffer.concat(body)));
+  // }
+  //
+  // dispatch(req, res, buffer) {
+  //   req.query = url.parse(req.url, true).query;
+  //   req.buffer = buffer;
+  //   req.body = buffer.toString();
+  //   req.toJSON = () => JSON.parse(buffer.toString());
+  //
+  //   const methodName = req.method.toLowerCase();
+  //   if(typeof this[methodName] !== "function") return console.warn(`unhandled '${methodName}' request on ${this.$uri} resource`);
+  //   this[methodName](req, res);
+  // }
+
   AbstractResource.prototype.mergeTasks = function mergeTasks() {
-    var _this2 = this;
+    var _this = this;
 
     for (var _len = arguments.length, tasks = Array(_len), _key = 0; _key < _len; _key++) {
       tasks[_key] = arguments[_key];
@@ -62,7 +60,7 @@ var AbstractResource = function () {
         return new Promise(function (resolve) {
           var caller = function caller(args) {
             var task = tasks.shift();
-            if (task) task.apply(_this2, args).then(function (result) {
+            if (task) task.apply(_this, args).then(function (result) {
               return caller(args.concat(result));
             }, function () {});else resolve(args.pop());
           };
