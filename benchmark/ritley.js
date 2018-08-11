@@ -1,11 +1,11 @@
-const Ritley = require("@ritley/core");
+const Ritley = require("../core");
 
 // use an adapter (for now, only raw (standalone) or firebase)
-const Adapter = require("@ritley/default-adapter");
+const Adapter = require("../default-adapter");
 
 // create an instance of the adapter
 new Adapter({
-  "port": 8080
+  "port": 3003
 });
 
 // create a resource that listens get calls
