@@ -96,7 +96,7 @@ describe("ritley's core suite", () => {
     const config = {};
     const context = { listeners, timeout, config };
 
-    it("[METHOD] ::handle should be able to invoke interceptors on matching request", () => {
+    it("[METHOD] ::handle should be able to invoke interceptors on matching request", done => {
       const handleStub = wrapInvoke(BaseAdapter, "handle");
 
       const reqStubDummy = { ...reqStub, url: "/dummy0" };
@@ -111,6 +111,16 @@ describe("ritley's core suite", () => {
       sinon.assert.calledWith(listeners[0].onRequest, reqStubDummy);
       sinon.assert.notCalled(listeners[1].onRequest);
       sinon.assert.notCalled(listeners[2].onRequest);
+      sinon.assert.notCalled(context.timeout);
+
+      const reqStubDummy2 = { ...reqStubDummy, url: "/dummy3" };
+
+      handleStub(contextForDummy0, reqStubDummy2);
+
+      setTimeout(() =>
+        sinon.assert.called(context.timeout), 1);
+
+      setTimeout(done, 2);
     });
 
     it("[METHOD] ::requestAllowed should be able to validate matching paths", () => {
@@ -125,6 +135,21 @@ describe("ritley's core suite", () => {
 
       assert.deepEqual(requestAllowedStub(context2, "/something/car", "car"), true);
       assert.deepEqual(requestAllowedStub(context2, "/something/cor", "car"), false);
+      assert.deepEqual(requestAllowedStub(context2, "/car", "car"), false);
+    });
+
+    it("[METHOD] ::register should be able to push items into the adapter:listeners prop", () => {
+
+      const registerStub = wrapInvoke(BaseAdapter, "register");
+
+      const context2 = { ...context, listeners: [] };
+
+      registerStub(context2, 1);
+      registerStub(context2, 2);
+      registerStub(context2, 3);
+
+      assert.deepEqual(context2.listeners.length, 3);
+      assert.deepEqual(context2.listeners.reduce((a, b) => a + b), 6);
     });
   })
 });
