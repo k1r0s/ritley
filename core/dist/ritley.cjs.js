@@ -9,7 +9,7 @@ var url = require("url");
 var $adapter = null;
 
 var normalizeUrl = function normalizeUrl(path) {
-  return path ? "/" + path : "";
+  return path ? path : "";
 };
 
 var AbstractResource = function () {
@@ -80,7 +80,7 @@ var BaseAdapter = function () {
     _classCallCheck(this, BaseAdapter);
 
     this.listeners = [];
-    if (config) this.config = config;else this.config = {};
+    if (config) this.config = config;else this.config = { base: "" };
     $adapter = this;
   }
 

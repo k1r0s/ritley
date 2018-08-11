@@ -2,7 +2,7 @@ const url = require("url");
 
 let $adapter = null;
 
-const normalizeUrl = path => path ? "/" + path: "";
+const normalizeUrl = path => path ? path: "";
 
 class AbstractResource {
 
@@ -50,7 +50,7 @@ export class BaseAdapter {
   constructor(config) {
     this.listeners = [];
     if(config) this.config = config;
-    else this.config = {};
+    else this.config = { base: "" };
     $adapter = this;
   }
 

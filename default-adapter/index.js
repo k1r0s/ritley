@@ -5,7 +5,7 @@ class StandaloneAdapter extends BaseAdapter {
   constructor(config) {
     super(config);
     this.server = this.createServer();
-    if(this.config.static) {
+    if(this.config.static && this.config.base) {
       this.setStaticSrv();
     }
   }
@@ -21,7 +21,7 @@ class StandaloneAdapter extends BaseAdapter {
     const ecstatic = require("ecstatic");
     const staticMiddleware = ecstatic({ root: `${this.config.static}`, handleError: false });
     this.server.on("request", (req, res) =>
-      !req.url.startsWith("/" + this.config.base) && staticMiddleware(req, res));
+      !req.url.startsWith(this.config.base) && staticMiddleware(req, res));
   }
 
 }

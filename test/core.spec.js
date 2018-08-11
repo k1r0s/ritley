@@ -87,9 +87,9 @@ describe("ritley's core suite", () => {
   describe("BaseAdapter method suite", () => {
 
     const listeners = [
-      { $uri: "dummy0", onRequest: sinon.stub() },
-      { $uri: "dummy1", onRequest: sinon.stub() },
-      { $uri: "dummy2", onRequest: sinon.stub() }
+      { $uri: "/dummy0", onRequest: sinon.stub() },
+      { $uri: "/dummy1", onRequest: sinon.stub() },
+      { $uri: "/dummy2", onRequest: sinon.stub() }
     ];
 
     const timeout = sinon.stub();
@@ -102,7 +102,7 @@ describe("ritley's core suite", () => {
       const reqStubDummy = { ...reqStub, url: "/dummy0" };
 
       const requestAllowed = sinon.stub().returns(false);
-      requestAllowed.withArgs("/dummy0", "dummy0").returns(true);
+      requestAllowed.withArgs("/dummy0", "/dummy0").returns(true);
 
       const contextForDummy0 = { ...context, requestAllowed };
 
@@ -128,14 +128,14 @@ describe("ritley's core suite", () => {
       const requestAllowedStub = wrapInvoke(BaseAdapter, "requestAllowed");
 
       assert.deepEqual(requestAllowedStub(context, "/"), true);
-      assert.deepEqual(requestAllowedStub(context, "/car", "car"), true);
-      assert.deepEqual(requestAllowedStub(context, "/cor", "car"), false);
+      assert.deepEqual(requestAllowedStub(context, "/car", "/car"), true);
+      assert.deepEqual(requestAllowedStub(context, "/cor", "/car"), false);
 
-      const context2 = { ...context, config: { base: "something" } };
+      const context2 = { ...context, config: { base: "/something" } };
 
-      assert.deepEqual(requestAllowedStub(context2, "/something/car", "car"), true);
-      assert.deepEqual(requestAllowedStub(context2, "/something/cor", "car"), false);
-      assert.deepEqual(requestAllowedStub(context2, "/car", "car"), false);
+      assert.deepEqual(requestAllowedStub(context2, "/something/car", "/car"), true);
+      assert.deepEqual(requestAllowedStub(context2, "/something/cor", "/car"), false);
+      assert.deepEqual(requestAllowedStub(context2, "/car", "/car"), false);
     });
 
     it("[METHOD] ::register should be able to push items into the adapter:listeners prop", () => {

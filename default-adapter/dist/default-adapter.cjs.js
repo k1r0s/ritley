@@ -20,7 +20,7 @@ var StandaloneAdapter = function (_BaseAdapter) {
     var _this = _possibleConstructorReturn(this, _BaseAdapter.call(this, config));
 
     _this.server = _this.createServer();
-    if (_this.config.static) {
+    if (_this.config.static && _this.config.base) {
       _this.setStaticSrv();
     }
     return _this;
@@ -43,7 +43,7 @@ var StandaloneAdapter = function (_BaseAdapter) {
     var ecstatic = require("ecstatic");
     var staticMiddleware = ecstatic({ root: "" + this.config.static, handleError: false });
     this.server.on("request", function (req, res) {
-      return !req.url.startsWith("/" + _this3.config.base) && staticMiddleware(req, res);
+      return !req.url.startsWith(_this3.config.base) && staticMiddleware(req, res);
     });
   };
 
