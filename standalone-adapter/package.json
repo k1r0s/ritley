@@ -9,9 +9,6 @@
   "keywords": [],
   "author": "k1r0s",
   "license": "ISC",
-  "dependencies": {
-    "@ritley/core": "^0.1.0"
-  },
   "peerDependencies": {
     "ecstatic": "^3.2.1"
   },
@@ -20,5 +17,8 @@
     "babel-preset-env": "^1.7.0",
     "rollup": "^0.62.0",
     "rollup-plugin-babel": "^3.0.7"
+  },
+  "dependencies": {
+    "@ritley/core": "file:../core"
   }
 }

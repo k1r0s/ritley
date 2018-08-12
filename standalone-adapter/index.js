@@ -1,7 +1,7 @@
-const http = require("http");
-const { BaseAdapter } = require("@ritley/core");
+import http from "http";
+import { BaseAdapter } from "@ritley/core";
 
-class StandaloneAdapter extends BaseAdapter {
+export default class StandaloneAdapter extends BaseAdapter {
   constructor(config) {
     super(config);
     this.server = this.createServer();
@@ -23,7 +23,4 @@ class StandaloneAdapter extends BaseAdapter {
     this.server.on("request", (req, res) =>
       !req.url.startsWith(this.config.base) && staticMiddleware(req, res));
   }
-
 }
-
-module.exports = StandaloneAdapter;
