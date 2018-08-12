@@ -9,6 +9,7 @@ var _require = require("kaop"),
 
 var _require2 = require("kaop-ts"),
     afterMethod = _require2.afterMethod,
+    beforeMethod = _require2.beforeMethod,
     beforeInstance = _require2.beforeInstance;
 
 var Dependency = function Dependency(prop, provider) {

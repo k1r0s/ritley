@@ -1,5 +1,5 @@
 const { inject } = require("kaop");
-const { afterMethod, beforeInstance } = require("kaop-ts");
+const { afterMethod, beforeMethod, beforeInstance } = require("kaop-ts");
 
 export const Dependency = (prop, provider) => beforeInstance(inject.assign({ [prop]: provider }));
 
