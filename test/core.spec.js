@@ -87,9 +87,9 @@ describe("ritley's core suite", () => {
   describe("BaseAdapter method suite", () => {
 
     const listeners = [
-      { $uri: "/dummy0", onRequest: sinon.stub() },
-      { $uri: "/dummy1", onRequest: sinon.stub() },
-      { $uri: "/dummy2", onRequest: sinon.stub() }
+      { $uri: "/dummy0", onRequest: sinon.stub(), shouldHandle: sinon.stub() },
+      { $uri: "/dummy1", onRequest: sinon.stub(), shouldHandle: sinon.stub() },
+      { $uri: "/dummy2", onRequest: sinon.stub(), shouldHandle: sinon.stub() }
     ];
 
     const timeout = sinon.stub();
@@ -101,41 +101,25 @@ describe("ritley's core suite", () => {
 
       const reqStubDummy = { ...reqStub, url: "/dummy0" };
 
-      const requestAllowed = sinon.stub().returns(false);
-      requestAllowed.withArgs("/dummy0", "/dummy0").returns(true);
+      listeners[0].shouldHandle.withArgs(reqStubDummy).returns(true);
+      listeners[1].shouldHandle.returns(false);
+      listeners[2].shouldHandle.returns(false);
 
-      const contextForDummy0 = { ...context, requestAllowed };
-
-      handleStub(contextForDummy0, reqStubDummy);
+      handleStub(context, reqStubDummy);
 
       sinon.assert.calledWith(listeners[0].onRequest, reqStubDummy);
       sinon.assert.notCalled(listeners[1].onRequest);
       sinon.assert.notCalled(listeners[2].onRequest);
       sinon.assert.notCalled(context.timeout);
 
-      const reqStubDummy2 = { ...reqStubDummy, url: "/dummy3" };
+      const reqStubDummy2 = { ...reqStub, url: "/dummy3" };
 
-      handleStub(contextForDummy0, reqStubDummy2);
+      handleStub(context, reqStubDummy2);
 
       setTimeout(() =>
         sinon.assert.called(context.timeout), 1);
 
       setTimeout(done, 2);
-    });
-
-    it("[METHOD] ::requestAllowed should be able to validate matching paths", () => {
-
-      const requestAllowedStub = wrapInvoke(BaseAdapter, "requestAllowed");
-
-      assert.deepEqual(requestAllowedStub(context, "/"), true);
-      assert.deepEqual(requestAllowedStub(context, "/car", "/car"), true);
-      assert.deepEqual(requestAllowedStub(context, "/cor", "/car"), false);
-
-      const context2 = { ...context, config: { base: "/something" } };
-
-      assert.deepEqual(requestAllowedStub(context2, "/something/car", "/car"), true);
-      assert.deepEqual(requestAllowedStub(context2, "/something/cor", "/car"), false);
-      assert.deepEqual(requestAllowedStub(context2, "/car", "/car"), false);
     });
 
     it("[METHOD] ::register should be able to push items into the adapter:listeners prop", () => {
@@ -155,7 +139,7 @@ describe("ritley's core suite", () => {
 
   describe("AbstractResource method suite", () => {
 
-    const context = { $uri: "cat", adapter: null, get() {}, post() {}, put() {}, delete() {} };
+    const context = { $uri: "/car", adapter: null, get() {}, post() {}, put() {}, delete() {} };
 
     beforeEach(() => {
       sinon.stub(context, "get");
@@ -208,6 +192,27 @@ describe("ritley's core suite", () => {
       assert.deepEqual(reqWithParams.body, '{"name":"barsik"}');
       assert.deepEqual(reqWithParams.toJSON(), {"name":"barsik"});
       assert.deepEqual(reqWithParams.buffer, Buffer.from('{"name":"barsik"}'));
+    });
+
+    it("[METHOD] ::shouldHandle should be able to validate matching paths", () => {
+
+      const shouldHandleStub = wrapInvoke(AbstractResource, "shouldHandle");
+
+      const emptyUriContext = { ...context, $uri: undefined }
+      assert.deepEqual(shouldHandleStub(emptyUriContext, reqStub), true);
+
+      const carReqStub = { ...reqStub, url: "/car" };
+      assert.deepEqual(shouldHandleStub(context, carReqStub), true);
+
+      const reqWithParamsStub = { ...reqStub, url: "/car?some=param" };
+      assert.deepEqual(shouldHandleStub(context, reqWithParamsStub), true);
+
+      const reqNotToBeHandled = { ...reqStub, url: "/cor" };
+      assert.deepEqual(shouldHandleStub(context, reqNotToBeHandled, "/car"), false);
+
+      const reqWithPrefix = { ...reqStub, url: "/something/car" };
+      assert.deepEqual(shouldHandleStub(context, reqWithPrefix, "/something"), true);
+      assert.deepEqual(shouldHandleStub(context, reqWithPrefix, "/somethinj"), false);
     });
 
     it("[METHOD] ::onRequest should only dispatch to corresponding implemented method", () => {
