@@ -1,6 +1,6 @@
 const sinon = require("sinon");
 const assert = require("assert");
-const { BaseAdapter, AbstractResource } = require("../core");
+const { BaseAdapter, AbstractResource, setAdapter } = require("../core");
 
 const wrapInvoke = (klass, method) => (context, ...args) => klass.prototype[method].call(context, ...args);
 
@@ -8,7 +8,7 @@ describe("ritley's core suite", () => {
 
   const reqStub = { url: "/", on(ev, cbk) { ev === "end" && cbk() } };
 
-  const adapter = new BaseAdapter();
+  const adapter = setAdapter(BaseAdapter);
 
   class DummyResource extends AbstractResource {
     get() {}

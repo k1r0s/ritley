@@ -25,7 +25,7 @@ You can check ritley-v1 [here](https://github.com/k1r0s/ritley-v1)
 
 #### Packages
 
-- @ritley/core: provides `BaseAdapter` and `AbstractResource`
+- @ritley/core: provides `BaseAdapter`, `AbstractResource` and `setAdapter`
 - @ritley/standalone-adapter: provides the standalone adapter which will create a nodejs server and bind it to ritley
 - @ritley/decorators: provides a set of useful abstractions that will reduce your codebase
 
@@ -46,19 +46,19 @@ Like React does, your resources will extend from `AbstractResource` to be able t
 So this is pretty straightforward:
 
 ```javascript
-const Ritley = require("@ritley/core");
+const { setAdapter, AbstractResource } = require("@ritley/core");
 
 // use an adapter (as we're going to create the
 // node instance we use this one)
 const Adapter = require("@ritley/standalone-adapter");
 
-// initialize the adapter (start nodejs)
-new Adapter({
+// define the adapter (will start nodejs)
+setAdapter(Adapter, {
   "port": 8080
 });
 
 // create a resource that listens get calls
-class DefaultResource extends Ritley.AbstractResource {
+class DefaultResource extends AbstractResource {
   get(req, res) {
     res.statusCode = 200;
     res.end("Hello World!");

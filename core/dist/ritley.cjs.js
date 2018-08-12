@@ -4,10 +4,13 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var $adapter = null;
-
 var normalizeUrl = function normalizeUrl(path) {
   return path ? path : "";
+};
+
+var setAdapter = function setAdapter(adapter) {
+  var config = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+  return AbstractResource.$singleton = new adapter(config);
 };
 
 var AbstractResource = function () {
@@ -15,8 +18,8 @@ var AbstractResource = function () {
     _classCallCheck(this, AbstractResource);
 
     this.$uri = _uri;
-    this.adapter = $adapter;
-    this.adapter.register(this);
+    if (!AbstractResource.$singleton) return console.error("First you must define some adapter!");
+    AbstractResource.$singleton.register(this);
   }
 
   AbstractResource.prototype.shouldHandle = function shouldHandle(req, base) {
@@ -64,8 +67,7 @@ var BaseAdapter = function () {
     _classCallCheck(this, BaseAdapter);
 
     this.listeners = [];
-    if (config) this.config = config;else this.config = { base: "" };
-    $adapter = this;
+    if (config) this.config = config;
   }
 
   BaseAdapter.prototype.handle = function handle(req, res) {
@@ -91,6 +93,6 @@ var BaseAdapter = function () {
   return BaseAdapter;
 }();
 
-module.exports = { BaseAdapter: BaseAdapter, AbstractResource: AbstractResource };
-
+exports.setAdapter = setAdapter;
+exports.AbstractResource = AbstractResource;
 exports.BaseAdapter = BaseAdapter;

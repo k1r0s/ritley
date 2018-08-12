@@ -1,13 +1,13 @@
-let $adapter = null;
-
 const normalizeUrl = path => path ? path: "";
 
-class AbstractResource {
+export const setAdapter = ((adapter, config = {}) => AbstractResource.$singleton = new adapter(config));
+
+export class AbstractResource {
 
   constructor(_uri) {
     this.$uri = _uri;
-    this.adapter = $adapter;
-    this.adapter.register(this);
+    if(!AbstractResource.$singleton) return console.error(`First you must define some adapter!`);
+    AbstractResource.$singleton.register(this);
   }
 
   shouldHandle(req, base) {
@@ -42,8 +42,6 @@ export class BaseAdapter {
   constructor(config) {
     this.listeners = [];
     if(config) this.config = config;
-    else this.config = { base: "" };
-    $adapter = this;
   }
 
   handle(req, res) {
@@ -66,5 +64,3 @@ export class BaseAdapter {
     res.end();
   }
 }
-
-module.exports = { BaseAdapter, AbstractResource }
