@@ -1,6 +1,6 @@
 {
   "name": "@ritley/standalone-adapter",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "",
   "main": "dist/standalone-adapter.cjs.js",
   "scripts": {
@@ -19,6 +19,6 @@
     "rollup-plugin-babel": "^3.0.7"
   },
   "dependencies": {
-    "@ritley/core": "file:../core"
+    "@ritley/core": "0.3.0"
   }
 }
