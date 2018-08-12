@@ -1,17 +1,18 @@
-const { inject } = require("kaop");
-const { afterMethod, beforeMethod, beforeInstance } = require("kaop-ts");
+import url from "url";
+import { inject } from "kaop";
+import { afterMethod, beforeMethod, beforeInstance } from "kaop-ts";
+import Path from "path-parser";
 
 export const Dependency = (prop, provider) => beforeInstance(inject.assign({ [prop]: provider }));
 
 export const Method = {
   _createMethodWrap: (method, path) => (proto, key, descriptor) => {
-    const Path = require("path-parser");
     const METHOD_DECORATOR_META_KEY = `ritley-listeners-${method}`;
     let listeners = Reflect.getMetadata(METHOD_DECORATOR_META_KEY, proto);
     if(!listeners) listeners = [];
     if(!proto[method]) proto[method] = function(req, res) {
       const predicate = listener =>
-        Path.createPath("/" + this.$uri + listener.path).test(req.url);
+        Path.createPath(this.$uri + listener.path).test(req.url);
       const found = listeners.find(predicate);
       if(found) this[found.key](req, res, predicate(found));
       else BadRequest({ args: [undefined, res] });
@@ -27,21 +28,35 @@ export const Method = {
 
 export const ReqTransformQuery = beforeMethod(meta => {
   const [req, res] = meta.args;
-  const url = require("url");
   req.query = url.parse(req.url, true).query;
 });
 
-export const ReqTransformBody = beforeMethod(meta => {
+export const ReqTransformBodySync = beforeMethod(meta => {
   const [req, res] = meta.args;
-  const body = [];
-  req.on("data", d => body.push(d));
+  const data = [];
+  req.on("data", d => data.push(d));
   req.on("end", () => {
-    req.buffer = buffer;
-    req.body = buffer.toString();
-    req.toJSON = () => JSON.parse(buffer.toString());
+    const buffer = Buffer.concat(data);
+    const string = buffer.toString();
+    const toJSON = () => JSON.parse(buffer.toString());
+    req.body = { buffer, string, toJSON };
     meta.commit();
   });
 });
+
+export const ReqTransformBodyAsync = beforeMethod(meta => {
+  const [req, res] = meta.args;
+  const data = [];
+  req.body = new Promise(resolve => {
+    req.on("data", d => data.push(d));
+    req.on("end", () => {
+      const buffer = Buffer.concat(data);
+      const string = buffer.toString();
+      const toJSON = () => JSON.parse(buffer.toString());
+      resolve({ buffer, string, toJSON });
+    });
+  });
+})
 
 export const Default = success => afterMethod(meta => {
   if(meta.result instanceof Promise) {

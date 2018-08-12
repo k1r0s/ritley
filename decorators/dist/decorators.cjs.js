@@ -2,26 +2,24 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
+
+var url = _interopDefault(require('url'));
+var kaop = require('kaop');
+var kaopTs = require('kaop-ts');
+var Path = _interopDefault(require('path-parser'));
+
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-var _require = require("kaop"),
-    inject = _require.inject;
-
-var _require2 = require("kaop-ts"),
-    afterMethod = _require2.afterMethod,
-    beforeMethod = _require2.beforeMethod,
-    beforeInstance = _require2.beforeInstance;
 
 var Dependency = function Dependency(prop, provider) {
   var _inject$assign;
 
-  return beforeInstance(inject.assign((_inject$assign = {}, _inject$assign[prop] = provider, _inject$assign)));
+  return kaopTs.beforeInstance(kaop.inject.assign((_inject$assign = {}, _inject$assign[prop] = provider, _inject$assign)));
 };
 
 var Method = {
   _createMethodWrap: function _createMethodWrap(method, path) {
     return function (proto, key, descriptor) {
-      var Path = require("path-parser");
       var METHOD_DECORATOR_META_KEY = "ritley-listeners-" + method;
       var listeners = Reflect.getMetadata(METHOD_DECORATOR_META_KEY, proto);
       if (!listeners) listeners = [];
@@ -29,7 +27,7 @@ var Method = {
         var _this = this;
 
         var predicate = function predicate(listener) {
-          return Path.createPath("/" + _this.$uri + listener.path).test(req.url);
+          return Path.createPath(_this.$uri + listener.path).test(req.url);
         };
         var found = listeners.find(predicate);
         if (found) this[found.key](req, res, predicate(found));else BadRequest({ args: [undefined, res] });
@@ -52,36 +50,57 @@ var Method = {
   }
 };
 
-var ReqTransformQuery = beforeMethod(function (meta) {
+var ReqTransformQuery = kaopTs.beforeMethod(function (meta) {
   var _meta$args = meta.args,
       req = _meta$args[0],
       res = _meta$args[1];
 
-  var url = require("url");
   req.query = url.parse(req.url, true).query;
 });
 
-var ReqTransformBody = beforeMethod(function (meta) {
+var ReqTransformBodySync = kaopTs.beforeMethod(function (meta) {
   var _meta$args2 = meta.args,
       req = _meta$args2[0],
       res = _meta$args2[1];
 
-  var body = [];
+  var data = [];
   req.on("data", function (d) {
-    return body.push(d);
+    return data.push(d);
   });
   req.on("end", function () {
-    req.buffer = buffer;
-    req.body = buffer.toString();
-    req.toJSON = function () {
+    var buffer = Buffer.concat(data);
+    var string = buffer.toString();
+    var toJSON = function toJSON() {
       return JSON.parse(buffer.toString());
     };
+    req.body = { buffer: buffer, string: string, toJSON: toJSON };
     meta.commit();
   });
 });
 
+var ReqTransformBodyAsync = kaopTs.beforeMethod(function (meta) {
+  var _meta$args3 = meta.args,
+      req = _meta$args3[0],
+      res = _meta$args3[1];
+
+  var data = [];
+  req.body = new Promise(function (resolve) {
+    req.on("data", function (d) {
+      return data.push(d);
+    });
+    req.on("end", function () {
+      var buffer = Buffer.concat(data);
+      var string = buffer.toString();
+      var toJSON = function toJSON() {
+        return JSON.parse(buffer.toString());
+      };
+      resolve({ buffer: buffer, string: string, toJSON: toJSON });
+    });
+  });
+});
+
 var Default = function Default(success) {
-  return afterMethod(function (meta) {
+  return kaopTs.afterMethod(function (meta) {
     if (meta.result instanceof Promise) {
       meta.result.then(function (result) {
         return success(meta, result);
@@ -93,7 +112,7 @@ var Default = function Default(success) {
 };
 
 var Catch = function Catch(error, message) {
-  return afterMethod(function (meta) {
+  return kaopTs.afterMethod(function (meta) {
     if (meta.result instanceof Promise) {
       meta.result.catch(function (err) {
         return error(meta, { message: message, err: err });
@@ -130,9 +149,9 @@ var InternalServerError = function InternalServerError(meta, content) {
 };
 
 var resolveMethod = function resolveMethod(meta, code, content) {
-  var _meta$args3 = meta.args,
-      req = _meta$args3[0],
-      res = _meta$args3[1];
+  var _meta$args4 = meta.args,
+      req = _meta$args4[0],
+      res = _meta$args4[1];
 
   res.statusCode = code;
   if ((typeof content === "undefined" ? "undefined" : _typeof(content)) === "object") {
@@ -146,7 +165,8 @@ var resolveMethod = function resolveMethod(meta, code, content) {
 exports.Dependency = Dependency;
 exports.Method = Method;
 exports.ReqTransformQuery = ReqTransformQuery;
-exports.ReqTransformBody = ReqTransformBody;
+exports.ReqTransformBodySync = ReqTransformBodySync;
+exports.ReqTransformBodyAsync = ReqTransformBodyAsync;
 exports.Default = Default;
 exports.Catch = Catch;
 exports.Ok = Ok;
