@@ -101,11 +101,11 @@ var ReqTransformBodyAsync = kaopTs.beforeMethod(function (meta) {
 
 var Default = function Default(success) {
   return kaopTs.afterMethod(function (meta) {
-    if (meta.result instanceof Promise) {
+    if (meta.result && typeof meta.result.then === "function") {
       meta.result.then(function (result) {
         return success(meta, result);
       });
-    } else if (meta.result) {
+    } else {
       success(meta, meta.result);
     }
   });
@@ -113,11 +113,11 @@ var Default = function Default(success) {
 
 var Catch = function Catch(error, message) {
   return kaopTs.afterMethod(function (meta) {
-    if (meta.result instanceof Promise) {
+    if (meta.result && typeof meta.result.catch === "function") {
       meta.result.catch(function (err) {
         return error(meta, { message: message, err: err });
       });
-    } else if (!meta.result) {
+    } else {
       error(meta, { message: message });
     }
   });

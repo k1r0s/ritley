@@ -59,17 +59,17 @@ export const ReqTransformBodyAsync = beforeMethod(meta => {
 })
 
 export const Default = success => afterMethod(meta => {
-  if(meta.result instanceof Promise) {
+  if(meta.result && typeof meta.result.then === "function") {
     meta.result.then(result => success(meta, result));
-  } else if(meta.result) {
+  } else {
     success(meta, meta.result);
   }
 });
 
 export const Catch = (error, message) => afterMethod(meta => {
-  if(meta.result instanceof Promise) {
+  if(meta.result && typeof meta.result.catch === "function") {
     meta.result.catch(err => error(meta, { message, err }));
-  } else if(!meta.result) {
+  } else {
     error(meta, { message });
   }
 });

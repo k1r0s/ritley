@@ -30,7 +30,8 @@ var AbstractResource = function () {
   AbstractResource.prototype.onRequest = function onRequest(req, res) {
     var methodName = req.method.toLowerCase();
     if (typeof this[methodName] !== "function") return console.warn("unhandled '" + methodName + "' request on " + this.$uri + " resource");
-    this[methodName](req, res);
+    var result = this[methodName](req, res);
+    if (result && typeof result.catch === "function") result.catch(function () {});
   };
 
   AbstractResource.prototype.mergeTasks = function mergeTasks() {
