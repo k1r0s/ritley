@@ -104,7 +104,7 @@ var Default = function Default(success) {
     if (meta.result && typeof meta.result.then === "function") {
       meta.result.then(function (result) {
         return success(meta, result);
-      });
+      }, function () {});
     } else {
       success(meta, meta.result);
     }
@@ -115,7 +115,7 @@ var Catch = function Catch(error, message) {
   return kaopTs.afterMethod(function (meta) {
     if (meta.result && typeof meta.result.catch === "function") {
       meta.result.catch(function (err) {
-        return error(meta, { message: message, err: err });
+        return error(meta, err ? err : { message: message });
       });
     } else {
       error(meta, { message: message });

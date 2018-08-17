@@ -60,7 +60,7 @@ export const ReqTransformBodyAsync = beforeMethod(meta => {
 
 export const Default = success => afterMethod(meta => {
   if(meta.result && typeof meta.result.then === "function") {
-    meta.result.then(result => success(meta, result));
+    meta.result.then(result => success(meta, result), () => {});
   } else {
     success(meta, meta.result);
   }
@@ -68,7 +68,7 @@ export const Default = success => afterMethod(meta => {
 
 export const Catch = (error, message) => afterMethod(meta => {
   if(meta.result && typeof meta.result.catch === "function") {
-    meta.result.catch(err => error(meta, { message, err }));
+    meta.result.catch(err => error(meta, err ? err: { message }));
   } else {
     error(meta, { message });
   }
