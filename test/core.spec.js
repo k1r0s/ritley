@@ -228,7 +228,7 @@ describe("ritley's core suite", () => {
       sinon.assert.notCalled(context.delete);
     });
 
-    it("[METHOD] ::mergeTasks should be able to invoke functions that returns promises appending arguments", done => {
+    it.skip("[deprecated] ::mergeTasks should be able to invoke functions that returns promises appending arguments", done => {
       const mergeTasksStub = wrapInvoke(AbstractResource, "mergeTasks");
 
       const task0 = sinon.stub().returns(Promise.resolve("Look"));
