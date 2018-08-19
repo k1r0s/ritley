@@ -6,7 +6,7 @@ export class AbstractResource {
 
   constructor(_uri) {
     this.$uri = _uri;
-    if(!AbstractResource.$singleton) return console.error(`First you must define some adapter!`);
+    if(!AbstractResource.$singleton) return console.warn(`first you must define some adapter!`);
     AbstractResource.$singleton.register(this);
   }
 
@@ -19,22 +19,7 @@ export class AbstractResource {
     const methodName = req.method.toLowerCase();
     if(typeof this[methodName] !== "function") return console.warn(`unhandled '${methodName}' request on ${this.$uri} resource`);
     const result = this[methodName](req, res);
-    if(result && typeof result.catch === "function") result.catch(() => {});
-  }
-
-  mergeTasks(...tasks) {
-    return {
-      args: (...initialArgs) => {
-        return new Promise((resolve) => {
-          const caller = args => {
-            const task = tasks.shift();
-            if(task) task.apply(this, args).then(result => caller(args.concat(result)), () => {});
-            else resolve(args.pop());
-          };
-          caller(initialArgs);
-        })
-      }
-    }
+    if(result && typeof result.catch === "function") result.catch(err => console.warn(`unhandled rejection: `, err));
   }
 }
 

@@ -18,7 +18,7 @@ var AbstractResource = function () {
     _classCallCheck(this, AbstractResource);
 
     this.$uri = _uri;
-    if (!AbstractResource.$singleton) return console.error("First you must define some adapter!");
+    if (!AbstractResource.$singleton) return console.warn("first you must define some adapter!");
     AbstractResource.$singleton.register(this);
   }
 
@@ -31,33 +31,9 @@ var AbstractResource = function () {
     var methodName = req.method.toLowerCase();
     if (typeof this[methodName] !== "function") return console.warn("unhandled '" + methodName + "' request on " + this.$uri + " resource");
     var result = this[methodName](req, res);
-    if (result && typeof result.catch === "function") result.catch(function () {});
-  };
-
-  AbstractResource.prototype.mergeTasks = function mergeTasks() {
-    var _this = this;
-
-    for (var _len = arguments.length, tasks = Array(_len), _key = 0; _key < _len; _key++) {
-      tasks[_key] = arguments[_key];
-    }
-
-    return {
-      args: function args() {
-        for (var _len2 = arguments.length, initialArgs = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-          initialArgs[_key2] = arguments[_key2];
-        }
-
-        return new Promise(function (resolve) {
-          var caller = function caller(args) {
-            var task = tasks.shift();
-            if (task) task.apply(_this, args).then(function (result) {
-              return caller(args.concat(result));
-            }, function () {});else resolve(args.pop());
-          };
-          caller(initialArgs);
-        });
-      }
-    };
+    if (result && typeof result.catch === "function") result.catch(function (err) {
+      return console.warn("unhandled rejection: ", err);
+    });
   };
 
   return AbstractResource;
