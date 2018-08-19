@@ -2,6 +2,7 @@ import url from "url";
 import { inject } from "kaop";
 import { afterMethod, beforeMethod, beforeInstance } from "kaop-ts";
 import Path from "path-parser";
+export { provider as Provider } from "kaop";
 
 export const Dependency = (prop, provider) => beforeInstance(inject.assign({ [prop]: provider }));
 
@@ -10,15 +11,17 @@ export const Method = {
     const METHOD_DECORATOR_META_KEY = `ritley-listeners-${method}`;
     let listeners = Reflect.getMetadata(METHOD_DECORATOR_META_KEY, proto);
     if(!listeners) listeners = [];
-    if(!proto[method]) proto[method] = function(req, res) {
+    if(!proto[method]) proto[method] = function(...argList) {
+      const [req, res] = argList;
       const predicate = listener =>
         Path.createPath(this.$uri + listener.path).test(req.url);
       const found = listeners.find(predicate);
-      if(found) this[found.key](req, res, predicate(found));
-      else BadRequest({ args: [undefined, res] });
+      if(found) this[found.key](...[ ...argList, predicate(found) ]);
+      else BadRequest(res);
     }
     listeners.push({ path, key });
     Reflect.defineMetadata(METHOD_DECORATOR_META_KEY, listeners, proto);
+    return descriptor;
   },
   get: path => Method._createMethodWrap("get", path),
   post: path => Method._createMethodWrap("post", path),
@@ -59,40 +62,41 @@ export const ReqTransformBodyAsync = beforeMethod(meta => {
 })
 
 export const Default = success => afterMethod(meta => {
-  if(meta.result && typeof meta.result.then === "function") {
-    meta.result.then(result => success(meta, result), () => {});
+  const { result, args } = meta;
+  if(result && typeof result.then === "function") {
+    result.then(result => success(args[1], result), () => {});
   } else {
-    success(meta, meta.result);
+    success(args[1], result);
   }
 });
 
 export const Catch = (error, message) => afterMethod(meta => {
-  if(meta.result && typeof meta.result.catch === "function") {
-    meta.result.catch(err => error(meta, err ? err: { message }));
+  const { result, args } = meta;
+  if(result && typeof result.catch === "function") {
+    result.catch(err => error(args[1], err ? err: { message }));
   } else {
-    error(meta, { message });
+    error(args[1], { message });
   }
 });
 
-export const Ok = (meta, content) =>
-  resolveMethod(meta, 200, content)
-export const Created = (meta, content) =>
-  resolveMethod(meta, 201, content)
-export const BadRequest = (meta, content) =>
-  resolveMethod(meta, 400, content)
-export const Unauthorized = (meta, content) =>
-  resolveMethod(meta, 401, content)
-export const Forbidden = (meta, content) =>
-  resolveMethod(meta, 403, content)
-export const MethodNotAllowed = (meta, content) =>
-  resolveMethod(meta, 405, content)
-export const Conflict = (meta, content) =>
-  resolveMethod(meta, 409, content)
-export const InternalServerError = (meta, content) =>
-  resolveMethod(meta, 500, content)
+export const Ok = (res, content) =>
+  resolveMethod(res, 200, content)
+export const Created = (res, content) =>
+  resolveMethod(res, 201, content)
+export const BadRequest = (res, content) =>
+  resolveMethod(res, 400, content)
+export const Unauthorized = (res, content) =>
+  resolveMethod(res, 401, content)
+export const Forbidden = (res, content) =>
+  resolveMethod(res, 403, content)
+export const MethodNotAllowed = (res, content) =>
+  resolveMethod(res, 405, content)
+export const Conflict = (res, content) =>
+  resolveMethod(res, 409, content)
+export const InternalServerError = (res, content) =>
+  resolveMethod(res, 500, content)
 
-const resolveMethod = (meta, code, content) => {
-  const [req, res] = meta.args;
+const resolveMethod = (res, code, content) => {
   res.statusCode = code;
   if(typeof content === "object") {
     res.write(JSON.stringify(content));

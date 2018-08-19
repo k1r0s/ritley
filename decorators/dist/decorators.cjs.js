@@ -23,17 +23,25 @@ var Method = {
       var METHOD_DECORATOR_META_KEY = "ritley-listeners-" + method;
       var listeners = Reflect.getMetadata(METHOD_DECORATOR_META_KEY, proto);
       if (!listeners) listeners = [];
-      if (!proto[method]) proto[method] = function (req, res) {
+      if (!proto[method]) proto[method] = function () {
         var _this = this;
+
+        for (var _len = arguments.length, argList = Array(_len), _key = 0; _key < _len; _key++) {
+          argList[_key] = arguments[_key];
+        }
+
+        var req = argList[0],
+            res = argList[1];
 
         var predicate = function predicate(listener) {
           return Path.createPath(_this.$uri + listener.path).test(req.url);
         };
         var found = listeners.find(predicate);
-        if (found) this[found.key](req, res, predicate(found));else BadRequest({ args: [undefined, res] });
+        if (found) this[found.key].apply(this, [].concat(argList, [predicate(found)]));else BadRequest(res);
       };
       listeners.push({ path: path, key: key });
       Reflect.defineMetadata(METHOD_DECORATOR_META_KEY, listeners, proto);
+      return descriptor;
     };
   },
   get: function get(path) {
@@ -101,58 +109,60 @@ var ReqTransformBodyAsync = kaopTs.beforeMethod(function (meta) {
 
 var Default = function Default(success) {
   return kaopTs.afterMethod(function (meta) {
-    if (meta.result && typeof meta.result.then === "function") {
-      meta.result.then(function (result) {
-        return success(meta, result);
+    var result = meta.result,
+        args = meta.args;
+
+    if (result && typeof result.then === "function") {
+      result.then(function (result) {
+        return success(args[1], result);
       }, function () {});
     } else {
-      success(meta, meta.result);
+      success(args[1], result);
     }
   });
 };
 
 var Catch = function Catch(error, message) {
   return kaopTs.afterMethod(function (meta) {
-    if (meta.result && typeof meta.result.catch === "function") {
-      meta.result.catch(function (err) {
-        return error(meta, err ? err : { message: message });
+    var result = meta.result,
+        args = meta.args;
+
+    if (result && typeof result.catch === "function") {
+      result.catch(function (err) {
+        return error(args[1], err ? err : { message: message });
       });
     } else {
-      error(meta, { message: message });
+      error(args[1], { message: message });
     }
   });
 };
 
-var Ok = function Ok(meta, content) {
-  return resolveMethod(meta, 200, content);
+var Ok = function Ok(res, content) {
+  return resolveMethod(res, 200, content);
 };
-var Created = function Created(meta, content) {
-  return resolveMethod(meta, 201, content);
+var Created = function Created(res, content) {
+  return resolveMethod(res, 201, content);
 };
-var BadRequest = function BadRequest(meta, content) {
-  return resolveMethod(meta, 400, content);
+var BadRequest = function BadRequest(res, content) {
+  return resolveMethod(res, 400, content);
 };
-var Unauthorized = function Unauthorized(meta, content) {
-  return resolveMethod(meta, 401, content);
+var Unauthorized = function Unauthorized(res, content) {
+  return resolveMethod(res, 401, content);
 };
-var Forbidden = function Forbidden(meta, content) {
-  return resolveMethod(meta, 403, content);
+var Forbidden = function Forbidden(res, content) {
+  return resolveMethod(res, 403, content);
 };
-var MethodNotAllowed = function MethodNotAllowed(meta, content) {
-  return resolveMethod(meta, 405, content);
+var MethodNotAllowed = function MethodNotAllowed(res, content) {
+  return resolveMethod(res, 405, content);
 };
-var Conflict = function Conflict(meta, content) {
-  return resolveMethod(meta, 409, content);
+var Conflict = function Conflict(res, content) {
+  return resolveMethod(res, 409, content);
 };
-var InternalServerError = function InternalServerError(meta, content) {
-  return resolveMethod(meta, 500, content);
+var InternalServerError = function InternalServerError(res, content) {
+  return resolveMethod(res, 500, content);
 };
 
-var resolveMethod = function resolveMethod(meta, code, content) {
-  var _meta$args4 = meta.args,
-      req = _meta$args4[0],
-      res = _meta$args4[1];
-
+var resolveMethod = function resolveMethod(res, code, content) {
   res.statusCode = code;
   if ((typeof content === "undefined" ? "undefined" : _typeof(content)) === "object") {
     res.write(JSON.stringify(content));
@@ -162,6 +172,7 @@ var resolveMethod = function resolveMethod(meta, code, content) {
   res.end();
 };
 
+exports.Provider = kaop.provider;
 exports.Dependency = Dependency;
 exports.Method = Method;
 exports.ReqTransformQuery = ReqTransformQuery;
