@@ -8,6 +8,23 @@ Ritley is a small package __with ZERO dependencies__ that allows you to create s
 
 The project is now separated in several parts that you may use as you see fit.
 
+#### Features
+
+- As fast as [fastify](https://github.com/fastify/fastify)
+- Easy to master
+- Scalable
+- Tiny
+- Progressive
+- High level extensions
+
+#### Packages
+
+- [@ritley/core](https://www.npmjs.com/package/@ritley/core): provides `BaseAdapter`, `AbstractResource` and `setAdapter`
+- [@ritley/standalone-adapter](https://www.npmjs.com/package/@ritley/standalone-adapter): provides the `StandaloneAdapter` which will create a nodejs server to handle forthcoming requests
+- [@ritley/decorators](https://www.npmjs.com/package/@ritley/decorators): provides a set of useful abstractions that will reduce your codebase
+
+> Why too many packages? maybe you don't like decorators or perhaps our abstractions doesn't fit for you so you don't want `@ritley/decorators`. Perhaps you're working with _Firebase_ so you don't need to create a nodejs instance yourself so you don't need `@ritley/standalone-adapter` pkg.
+
 #### How it works
 
 Ritley its just a wrapper of Node's default http package. You don't have to worry about learn another API but [this one](https://nodejs.org/api/http.html) that you may already known.
@@ -59,23 +76,6 @@ Now by doing `curl localhost:8080` you'll get a nice Hello World!
 This repo is intended to be a complete override of v1
 
 You can check ritley-v1 [here](https://github.com/k1r0s/ritley-v1)
-
-#### Features
-
-- As fast as [fastify](https://github.com/fastify/fastify)
-- Easy to master
-- Scalable
-- Tiny
-- Progressive
-- High level extensions
-
-#### Packages
-
-- @ritley/core: provides `BaseAdapter`, `AbstractResource` and `setAdapter`
-- @ritley/standalone-adapter: provides the standalone adapter which will create a nodejs server and bind it to ritley
-- @ritley/decorators: provides a set of useful abstractions that will reduce your codebase
-
-> Why too many packages? maybe you don't like decorators or perhaps our abstractions doesn't fit for you so you don't want `@ritley/decorators`. Perhaps you're working with _Firebase_ so you don't need to create a nodejs instance yourself so you don't need `@ritley/standalone-adapter` pkg.
 
 #### Philosophy
 
