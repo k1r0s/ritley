@@ -212,7 +212,7 @@ describe("ritley's decorators suite", () => {
     const result = { message: "result is wrong, but test right"};
 
     it("should be able to resolve http request when returned promise rejects", done => {
-      const DecoratedClass = decorateMethod(DummyResource, "post", Catch(HTTPVERBS.Ok, result.message));
+      const DecoratedClass = decorateMethod(DummyResource, "post", Catch(HTTPVERBS.Ok, result));
 
       const dummyResource = new DecoratedClass();
 
@@ -251,6 +251,12 @@ describe("ritley's decorators suite", () => {
     it("verb Created", () => {
       HTTPVERBS.Created(response, "something");
       assert.deepEqual(response.statusCode, 201);
+      sinon.assert.calledWith(response.write, "something");
+      sinon.assert.called(response.end);
+    });
+    it("verb NoContent", () => {
+      HTTPVERBS.NoContent(response, "something");
+      assert.deepEqual(response.statusCode, 204);
       sinon.assert.calledWith(response.write, "something");
       sinon.assert.called(response.end);
     });
