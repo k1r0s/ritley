@@ -178,6 +178,10 @@ describe("ritley's decorators suite", () => {
       post() {
         return Promise.resolve(result)
       }
+
+      put() {
+        return Promise.reject()
+      }
     }
 
     const result = { message: "test is right "};
@@ -198,7 +202,19 @@ describe("ritley's decorators suite", () => {
       });
     });
 
+    it("should be able to resolve `InternalServerError` when returned promise rejects", done => {
+      const DecoratedClass = decorateMethod(DummyResource, "put", Default(HTTPVERBS.Ok));
 
+      const dummyResource = new DecoratedClass();
+
+      const res = { end: sinon.stub(), statusCode: undefined };
+
+      dummyResource.put(undefined, res).then(() => {}, () => {
+        assert.deepEqual(res.statusCode, 500);
+        sinon.assert.called(res.end);
+        done();
+      });
+    });
   });
 
   describe("named export `Catch`", () => {
