@@ -62,20 +62,22 @@ export const ReqTransformBodyAsync = beforeMethod(meta => {
 })
 
 export const Default = success => afterMethod(meta => {
-  const { result, args } = meta;
-  if(result && typeof result.then === "function") {
+  const { result, args, exception, handle } = meta;
+  if (exception) {
+    handle();
+    error(args[1], content);
+  } else if(result && typeof result.then === "function") {
     result.then(result => success(args[1], result), () => InternalServerError(args[1]));
-  } else {
-    success(args[1], result);
   }
 });
 
 export const Catch = (error, content) => afterMethod(meta => {
-  const { result, args } = meta;
-  if(result && typeof result.catch === "function") {
-    result.catch(() => error(args[1], content));
-  } else {
+  const { result, args, exception, handle } = meta;
+  if (exception) {
+    handle();
     error(args[1], content);
+  } else if(result && typeof result.then === "function") {
+    result.catch(() => error(args[1], content));
   }
 });
 

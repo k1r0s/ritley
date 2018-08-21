@@ -110,16 +110,19 @@ var ReqTransformBodyAsync = kaopTs.beforeMethod(function (meta) {
 var Default = function Default(success) {
   return kaopTs.afterMethod(function (meta) {
     var result = meta.result,
-        args = meta.args;
+        args = meta.args,
+        exception = meta.exception,
+        handle = meta.handle;
 
-    if (result && typeof result.then === "function") {
+    if (exception) {
+      handle();
+      error(args[1], content);
+    } else if (result && typeof result.then === "function") {
       result.then(function (result) {
         return success(args[1], result);
       }, function () {
         return InternalServerError(args[1]);
       });
-    } else {
-      success(args[1], result);
     }
   });
 };
@@ -127,14 +130,17 @@ var Default = function Default(success) {
 var Catch = function Catch(error, content) {
   return kaopTs.afterMethod(function (meta) {
     var result = meta.result,
-        args = meta.args;
+        args = meta.args,
+        exception = meta.exception,
+        handle = meta.handle;
 
-    if (result && typeof result.catch === "function") {
+    if (exception) {
+      handle();
+      error(args[1], content);
+    } else if (result && typeof result.then === "function") {
       result.catch(function () {
         return error(args[1], content);
       });
-    } else {
-      error(args[1], content);
     }
   });
 };
