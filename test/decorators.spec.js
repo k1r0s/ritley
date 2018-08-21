@@ -223,23 +223,44 @@ describe("ritley's decorators suite", () => {
       post() {
         return Promise.reject()
       }
+
+      put() {
+        aaaaaaaaasdasdasda()
+      }
     }
 
     const result = { message: "result is wrong, but test right"};
 
     it("should be able to resolve http request when returned promise rejects", done => {
-      const DecoratedClass = decorateMethod(DummyResource, "post", Catch(HTTPVERBS.Ok, result));
+      const DecoratedClass = decorateMethod(DummyResource, "post", Catch(HTTPVERBS.BadRequest, result));
 
       const dummyResource = new DecoratedClass();
 
       const res = { end: sinon.stub(), write: sinon.stub(), statusCode: undefined };
 
       dummyResource.post(undefined, res).catch(() => {
-        assert.deepEqual(res.statusCode, 200);
+        assert.deepEqual(res.statusCode, 400);
         sinon.assert.calledWith(res.write, JSON.stringify(result));
         sinon.assert.called(res.end);
         done();
       });
+    });
+
+    it("should be able to catch syncronous exceptions if any", done => {
+      const DecoratedClass = decorateMethod(DummyResource, "put", Catch(HTTPVERBS.BadRequest, result));
+
+      const dummyResource = new DecoratedClass();
+
+      const res = { end: sinon.stub(), write: sinon.stub(), statusCode: undefined };
+
+      dummyResource.put(undefined, res);
+
+      setTimeout(() => {
+        assert.deepEqual(res.statusCode, 400);
+        sinon.assert.calledWith(res.write, JSON.stringify(result));
+        sinon.assert.called(res.end);
+        done();
+      }, 10)
     });
 
   });
