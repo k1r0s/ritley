@@ -64,7 +64,7 @@ export const ReqTransformBodyAsync = beforeMethod(meta => {
 export const Default = success => afterMethod(meta => {
   const { result, args } = meta;
   if(result && typeof result.then === "function") {
-    result.then(result => success(args[1], result), () => {});
+    result.then(result => success(args[1], result), () => InternalServerError(args[1]));
   } else {
     success(args[1], result);
   }

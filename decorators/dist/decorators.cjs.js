@@ -115,7 +115,9 @@ var Default = function Default(success) {
     if (result && typeof result.then === "function") {
       result.then(function (result) {
         return success(args[1], result);
-      }, function () {});
+      }, function () {
+        return InternalServerError(args[1]);
+      });
     } else {
       success(args[1], result);
     }
