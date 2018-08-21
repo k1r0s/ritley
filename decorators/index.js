@@ -70,19 +70,31 @@ export const Default = success => afterMethod(meta => {
   }
 });
 
-export const Catch = (error, message) => afterMethod(meta => {
+export const Catch = (error, content) => afterMethod(meta => {
   const { result, args } = meta;
   if(result && typeof result.catch === "function") {
-    result.catch(err => error(args[1], err ? err: { message }));
+    result.catch(() => error(args[1], content));
   } else {
-    error(args[1], { message });
+    error(args[1], content);
   }
 });
+
+const resolveMethod = (res, code, content) => {
+  res.statusCode = code;
+  if(typeof content === "object") {
+    res.write(JSON.stringify(content));
+  } else if(typeof content === "string") {
+    res.write(content);
+  }
+  res.end();
+}
 
 export const Ok = (res, content) =>
   resolveMethod(res, 200, content)
 export const Created = (res, content) =>
   resolveMethod(res, 201, content)
+export const NoContent = (res, content) =>
+  resolveMethod(res, 204, content)
 export const BadRequest = (res, content) =>
   resolveMethod(res, 400, content)
 export const Unauthorized = (res, content) =>
@@ -95,13 +107,3 @@ export const Conflict = (res, content) =>
   resolveMethod(res, 409, content)
 export const InternalServerError = (res, content) =>
   resolveMethod(res, 500, content)
-
-const resolveMethod = (res, code, content) => {
-  res.statusCode = code;
-  if(typeof content === "object") {
-    res.write(JSON.stringify(content));
-  } else if(typeof content === "string") {
-    res.write(content);
-  }
-  res.end();
-}

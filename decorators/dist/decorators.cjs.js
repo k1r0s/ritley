@@ -122,19 +122,29 @@ var Default = function Default(success) {
   });
 };
 
-var Catch = function Catch(error, message) {
+var Catch = function Catch(error, content) {
   return kaopTs.afterMethod(function (meta) {
     var result = meta.result,
         args = meta.args;
 
     if (result && typeof result.catch === "function") {
-      result.catch(function (err) {
-        return error(args[1], err ? err : { message: message });
+      result.catch(function () {
+        return error(args[1], content);
       });
     } else {
-      error(args[1], { message: message });
+      error(args[1], content);
     }
   });
+};
+
+var resolveMethod = function resolveMethod(res, code, content) {
+  res.statusCode = code;
+  if ((typeof content === "undefined" ? "undefined" : _typeof(content)) === "object") {
+    res.write(JSON.stringify(content));
+  } else if (typeof content === "string") {
+    res.write(content);
+  }
+  res.end();
 };
 
 var Ok = function Ok(res, content) {
@@ -142,6 +152,9 @@ var Ok = function Ok(res, content) {
 };
 var Created = function Created(res, content) {
   return resolveMethod(res, 201, content);
+};
+var NoContent = function NoContent(res, content) {
+  return resolveMethod(res, 204, content);
 };
 var BadRequest = function BadRequest(res, content) {
   return resolveMethod(res, 400, content);
@@ -162,16 +175,6 @@ var InternalServerError = function InternalServerError(res, content) {
   return resolveMethod(res, 500, content);
 };
 
-var resolveMethod = function resolveMethod(res, code, content) {
-  res.statusCode = code;
-  if ((typeof content === "undefined" ? "undefined" : _typeof(content)) === "object") {
-    res.write(JSON.stringify(content));
-  } else if (typeof content === "string") {
-    res.write(content);
-  }
-  res.end();
-};
-
 exports.Provider = kaop.provider;
 exports.Dependency = Dependency;
 exports.Method = Method;
@@ -182,6 +185,7 @@ exports.Default = Default;
 exports.Catch = Catch;
 exports.Ok = Ok;
 exports.Created = Created;
+exports.NoContent = NoContent;
 exports.BadRequest = BadRequest;
 exports.Unauthorized = Unauthorized;
 exports.Forbidden = Forbidden;
