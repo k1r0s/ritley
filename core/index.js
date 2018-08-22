@@ -18,8 +18,7 @@ export class AbstractResource {
   onRequest(req, res) {
     const methodName = req.method.toLowerCase();
     if(typeof this[methodName] !== "function") return console.warn(`unhandled '${methodName}' request on ${this.$uri} resource`);
-    const result = this[methodName](req, res);
-    if(result && typeof result.catch === "function") result.catch(err => console.warn(`unhandled rejection: `, err));
+    this[methodName](req, res);
   }
 }
 

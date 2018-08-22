@@ -30,10 +30,7 @@ var AbstractResource = function () {
   AbstractResource.prototype.onRequest = function onRequest(req, res) {
     var methodName = req.method.toLowerCase();
     if (typeof this[methodName] !== "function") return console.warn("unhandled '" + methodName + "' request on " + this.$uri + " resource");
-    var result = this[methodName](req, res);
-    if (result && typeof result.catch === "function") result.catch(function (err) {
-      return console.warn("unhandled rejection: ", err);
-    });
+    this[methodName](req, res);
   };
 
   return AbstractResource;
