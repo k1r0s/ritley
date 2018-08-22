@@ -1,10 +1,10 @@
 import url from "url";
-import { inject } from "kaop";
-import { afterMethod, beforeMethod, beforeInstance } from "kaop-ts";
+import { inject, provider, afterMethod, beforeMethod, beforeInstance } from "kaop-ts";
 import Path from "path-parser";
-export { provider as Provider } from "kaop";
 
-export const Dependency = (prop, provider) => beforeInstance(inject.assign({ [prop]: provider }));
+export { provider as Provider }
+
+export const Dependency = (prop, prov) => beforeInstance(inject.assign({ [prop]: prov }));
 
 export const Method = {
   _createMethodWrap: (method, path) => (proto, key, descriptor) => {
@@ -65,9 +65,11 @@ export const Default = success => afterMethod(meta => {
   const { result, args, exception, handle } = meta;
   if (exception) {
     handle();
-    error(args[1], content);
+    InternalServerError(args[1]);
   } else if(result && typeof result.then === "function") {
     result.then(result => success(args[1], result), () => InternalServerError(args[1]));
+  } else {
+    success(args[1]);
   }
 });
 

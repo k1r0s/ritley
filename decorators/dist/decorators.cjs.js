@@ -5,16 +5,15 @@ Object.defineProperty(exports, '__esModule', { value: true });
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
 var url = _interopDefault(require('url'));
-var kaop = require('kaop');
 var kaopTs = require('kaop-ts');
 var Path = _interopDefault(require('path-parser'));
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-var Dependency = function Dependency(prop, provider) {
+var Dependency = function Dependency(prop, prov) {
   var _inject$assign;
 
-  return kaopTs.beforeInstance(kaop.inject.assign((_inject$assign = {}, _inject$assign[prop] = provider, _inject$assign)));
+  return kaopTs.beforeInstance(kaopTs.inject.assign((_inject$assign = {}, _inject$assign[prop] = prov, _inject$assign)));
 };
 
 var Method = {
@@ -116,13 +115,15 @@ var Default = function Default(success) {
 
     if (exception) {
       handle();
-      error(args[1], content);
+      InternalServerError(args[1]);
     } else if (result && typeof result.then === "function") {
       result.then(function (result) {
         return success(args[1], result);
       }, function () {
         return InternalServerError(args[1]);
       });
+    } else {
+      success(args[1]);
     }
   });
 };
@@ -183,7 +184,7 @@ var InternalServerError = function InternalServerError(res, content) {
   return resolveMethod(res, 500, content);
 };
 
-exports.Provider = kaop.provider;
+exports.Provider = kaopTs.provider;
 exports.Dependency = Dependency;
 exports.Method = Method;
 exports.ReqTransformQuery = ReqTransformQuery;
