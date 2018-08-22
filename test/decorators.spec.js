@@ -1,6 +1,5 @@
 const sinon = require("sinon");
 const assert = require("assert");
-const { inject } = require("../decorators/node_modules/kaop");
 const kaopTs = require("../decorators/node_modules/kaop-ts");
 
 const {
@@ -26,7 +25,6 @@ const decorateMethod = (target, method, decorator) => {
 describe("ritley's decorators suite", () => {
   describe("named export `Provider`", () => {
     it("Provider should be available as an alias of kaop.provider", () => {
-      // trust kaop tests https://github.com/k1r0s/kaop/blob/master/test/inject.spec.js
       assert(typeof Provider.singleton === "function");
       assert(typeof Provider.factory === "function");
     })
@@ -36,17 +34,17 @@ describe("ritley's decorators suite", () => {
     let providerStub;
 
     before(() => {
-      sinon.stub(inject, "assign").returns(function() {});
+      sinon.stub(kaopTs.inject, "assign").returns(function() {});
       providerStub = sinon.stub().returns("some instance");
     });
 
     it("Dependency should be able to call kaop.inject.assign", () => {
       Dependency("foo", providerStub)(function() {});
-      sinon.assert.calledWith(inject.assign, { foo: providerStub });
+      sinon.assert.calledWith(kaopTs.inject.assign, { foo: providerStub });
     });
 
     it("Dependency should be able to assign named properties on decorated class instantation", () => {
-      inject.assign.restore();
+      kaopTs.inject.assign.restore();
 
       class Bar {}
       const decoratedBar = Dependency("foo", providerStub)(Bar);
@@ -182,6 +180,10 @@ describe("ritley's decorators suite", () => {
       put() {
         return Promise.reject()
       }
+
+      delete() {
+        lajsjsldjldsalk();
+      }
     }
 
     const result = { message: "test is right "};
@@ -215,6 +217,23 @@ describe("ritley's decorators suite", () => {
         done();
       });
     });
+
+    it("should be able to catch syncronous exceptions if any", done => {
+      const DecoratedClass = decorateMethod(DummyResource, "delete", Default(HTTPVERBS.Ok));
+
+      const dummyResource = new DecoratedClass();
+
+      const res = { end: sinon.stub(), write: sinon.stub(), statusCode: undefined };
+
+      dummyResource.delete(undefined, res);
+
+      setTimeout(() => {
+        assert.deepEqual(res.statusCode, 500);
+        sinon.assert.called(res.end);
+        done();
+      }, 10)
+    });
+
   });
 
   describe("named export `Catch`", () => {
