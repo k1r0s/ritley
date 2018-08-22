@@ -87,6 +87,10 @@ Ritley just provides the basics to sort and separate your code into domains as a
 
 Like React does, your resources will extend from `AbstractResource` to be able to listen calls having its first parameter on the constructor. You can ignore the constructor or simply override it by implementing `super(uri)` or by applying any reflection technique.
 
+#### Example Repo
+
+[ritley-example](https://github.com/k1r0s/ritley-example)
+
 #### Roadmap
 - ~~Setup testing~~
 - Create examples for advanced behaviors
