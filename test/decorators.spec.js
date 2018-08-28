@@ -11,6 +11,7 @@ const {
   ReqTransformBodyAsync,
   Default,
   Catch,
+  Throws,
   ...HTTPVERBS
  } = require("../decorators");
 
@@ -284,6 +285,66 @@ describe("ritley's decorators suite", () => {
 
   });
 
+  describe("named export `Throws`", () => {
+
+    class DummyResource {
+      post() {
+        return new Promise(() => {
+          zz()
+        })
+      }
+
+      put() {
+        zz()
+      }
+
+      pat() {
+        zz()
+      }
+    }
+
+    it("should be able to capture specific errors in rejections", () => {
+      const DecoratedClass = decorateMethod(DummyResource, "post", Throws(ReferenceError, HTTPVERBS.BadRequest));
+
+      const dummyResource = new DecoratedClass();
+
+      const res = { end: sinon.stub(), write: sinon.stub(), statusCode: undefined };
+
+      return dummyResource.post(undefined, res).then(() => {
+        assert.deepEqual(res.statusCode, 400);
+        sinon.assert.calledWith(res.write, JSON.stringify({ message: "zz is not defined"}));
+        sinon.assert.called(res.end);
+      });
+    });
+
+    it("should be able to capture specific errors (synchronous)", () => {
+      const DecoratedClass = decorateMethod(DummyResource, "put", Throws(ReferenceError, HTTPVERBS.BadRequest));
+
+      const dummyResource = new DecoratedClass();
+
+      const res = { end: sinon.stub(), write: sinon.stub(), statusCode: undefined };
+
+      dummyResource.put(undefined, res);
+
+      assert.deepEqual(res.statusCode, 400);
+      sinon.assert.calledWith(res.write, JSON.stringify({ message: "zz is not defined"}));
+      sinon.assert.called(res.end);
+    });
+
+    it("should throw the exception if no matching type is defined", () => {
+      const DecoratedClass = decorateMethod(DummyResource, "pat", Throws(TypeError, HTTPVERBS.BadRequest));
+
+      const dummyResource = new DecoratedClass();
+
+      const res = { end: sinon.stub(), write: sinon.stub(), statusCode: undefined };
+
+      assert.throws(() => dummyResource.pat(undefined, res), ReferenceError);
+      assert.deepEqual(res.statusCode, undefined);
+      sinon.assert.notCalled(res.write);
+      sinon.assert.notCalled(res.end);
+    });
+  });
+
   describe("named export `HTTP verbs`", () => {
 
     const response = { end: () => {}, write: () => {} };
@@ -301,55 +362,55 @@ describe("ritley's decorators suite", () => {
     it("verb Ok", () => {
       HTTPVERBS.Ok(response, "something");
       assert.deepEqual(response.statusCode, 200);
-      sinon.assert.calledWith(response.write, "something");
+      sinon.assert.calledWith(response.write, '{"message":"something"}');
       sinon.assert.called(response.end);
     });
     it("verb Created", () => {
       HTTPVERBS.Created(response, "something");
       assert.deepEqual(response.statusCode, 201);
-      sinon.assert.calledWith(response.write, "something");
+      sinon.assert.calledWith(response.write, '{"message":"something"}');
       sinon.assert.called(response.end);
     });
     it("verb NoContent", () => {
       HTTPVERBS.NoContent(response, "something");
       assert.deepEqual(response.statusCode, 204);
-      sinon.assert.calledWith(response.write, "something");
+      sinon.assert.calledWith(response.write, '{"message":"something"}');
       sinon.assert.called(response.end);
     });
     it("verb BadRequest", () => {
       HTTPVERBS.BadRequest(response, "something");
       assert.deepEqual(response.statusCode, 400);
-      sinon.assert.calledWith(response.write, "something");
+      sinon.assert.calledWith(response.write, '{"message":"something"}');
       sinon.assert.called(response.end);
     });
     it("verb Unauthorized", () => {
       HTTPVERBS.Unauthorized(response, "something");
       assert.deepEqual(response.statusCode, 401);
-      sinon.assert.calledWith(response.write, "something");
+      sinon.assert.calledWith(response.write, '{"message":"something"}');
       sinon.assert.called(response.end);
     });
     it("verb Forbidden", () => {
       HTTPVERBS.Forbidden(response, "something");
       assert.deepEqual(response.statusCode, 403);
-      sinon.assert.calledWith(response.write, "something");
+      sinon.assert.calledWith(response.write, '{"message":"something"}');
       sinon.assert.called(response.end);
     });
     it("verb MethodNotAllowed", () => {
       HTTPVERBS.MethodNotAllowed(response, "something");
       assert.deepEqual(response.statusCode, 405);
-      sinon.assert.calledWith(response.write, "something");
+      sinon.assert.calledWith(response.write, '{"message":"something"}');
       sinon.assert.called(response.end);
     });
     it("verb Conflict", () => {
       HTTPVERBS.Conflict(response, "something");
       assert.deepEqual(response.statusCode, 409);
-      sinon.assert.calledWith(response.write, "something");
+      sinon.assert.calledWith(response.write, '{"message":"something"}');
       sinon.assert.called(response.end);
     });
     it("verb InternalServerError", () => {
       HTTPVERBS.InternalServerError(response, "something");
       assert.deepEqual(response.statusCode, 500);
-      sinon.assert.calledWith(response.write, "something");
+      sinon.assert.calledWith(response.write, '{"message":"something"}');
       sinon.assert.called(response.end);
     });
   });
