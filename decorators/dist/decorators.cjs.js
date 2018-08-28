@@ -106,52 +106,71 @@ var ReqTransformBodyAsync = kaopTs.beforeMethod(function (meta) {
   });
 });
 
-var Default = function Default(success) {
+var Throws = function Throws(errorType, fn) {
   return kaopTs.afterMethod(function (meta) {
-    var result = meta.result,
-        args = meta.args,
-        exception = meta.exception,
-        handle = meta.handle;
+    var _meta$args4 = meta.args,
+        req = _meta$args4[0],
+        res = _meta$args4[1];
 
-    if (exception) {
-      handle();
-      InternalServerError(args[1]);
-    } else if (result && typeof result.then === "function") {
-      result.then(function (result) {
-        return success(args[1], result);
+    if (meta.exception && meta.exception instanceof errorType) {
+      var exception = meta.handle();
+      fn(res, exception.message);
+    } else if (meta.result && typeof meta.result.catch === "function") {
+      meta.result = meta.result.catch(function (exception) {
+        if (exception instanceof errorType) {
+          fn(res, exception.message);
+        } else {
+          throw exception;
+        }
+      });
+    }
+  });
+};
+
+var Default = function Default(fn) {
+  return kaopTs.afterMethod(function (meta) {
+    var _meta$args5 = meta.args,
+        req = _meta$args5[0],
+        res = _meta$args5[1];
+
+    if (meta.exception) {
+      var exception = meta.handle();
+      InternalServerError(res, exception.message);
+    } else if (meta.result && typeof meta.result.then === "function") {
+      meta.result.then(function (result) {
+        return fn(res, result);
       }, function () {
-        return InternalServerError(args[1]);
+        return InternalServerError(res);
       });
     } else {
-      success(args[1]);
+      fn(res);
     }
   });
 };
 
 var Catch = function Catch(error, content) {
   return kaopTs.afterMethod(function (meta) {
-    var result = meta.result,
-        args = meta.args,
-        exception = meta.exception,
-        handle = meta.handle;
+    var _meta$args6 = meta.args,
+        req = _meta$args6[0],
+        res = _meta$args6[1];
 
-    if (exception) {
-      handle();
-      error(args[1], content);
-    } else if (result && typeof result.then === "function") {
-      result.catch(function () {
-        return error(args[1], content);
+    if (meta.exception) {
+      var exception = meta.handle();
+      error(res, content);
+    } else if (meta.result && typeof meta.result.catch === "function") {
+      meta.result.catch(function () {
+        return error(res, content);
       });
     }
   });
 };
 
-var resolveMethod = function resolveMethod(res, code, content) {
+var resolveMethod = function resolveMethod(res, code, message) {
   res.statusCode = code;
-  if ((typeof content === "undefined" ? "undefined" : _typeof(content)) === "object") {
-    res.write(JSON.stringify(content));
-  } else if (typeof content === "string") {
-    res.write(content);
+  if ((typeof message === "undefined" ? "undefined" : _typeof(message)) === "object") {
+    res.write(JSON.stringify(message));
+  } else if (typeof message === "string") {
+    res.write(JSON.stringify({ message: message }));
   }
   res.end();
 };
@@ -190,6 +209,7 @@ exports.Method = Method;
 exports.ReqTransformQuery = ReqTransformQuery;
 exports.ReqTransformBodySync = ReqTransformBodySync;
 exports.ReqTransformBodyAsync = ReqTransformBodyAsync;
+exports.Throws = Throws;
 exports.Default = Default;
 exports.Catch = Catch;
 exports.Ok = Ok;

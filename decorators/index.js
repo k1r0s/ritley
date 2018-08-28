@@ -61,34 +61,50 @@ export const ReqTransformBodyAsync = beforeMethod(meta => {
   });
 })
 
-export const Default = success => afterMethod(meta => {
-  const { result, args, exception, handle } = meta;
-  if (exception) {
-    handle();
-    InternalServerError(args[1]);
-  } else if(result && typeof result.then === "function") {
-    result.then(result => success(args[1], result), () => InternalServerError(args[1]));
+export const Throws = (errorType, fn) => afterMethod(meta => {
+  const [req, res] = meta.args;
+  if (meta.exception && meta.exception instanceof errorType) {
+    const exception = meta.handle();
+    fn(res, exception.message);
+  } else if(meta.result && typeof meta.result.catch === "function") {
+    meta.result = meta.result.catch(exception => {
+      if (exception instanceof errorType) {
+        fn(res, exception.message);
+      } else {
+        throw exception;
+      }
+    });
+  }
+});
+
+export const Default = fn => afterMethod(meta => {
+  const [req, res] = meta.args;
+  if (meta.exception) {
+    const exception = meta.handle();
+    InternalServerError(res, exception.message);
+  } else if(meta.result && typeof meta.result.then === "function") {
+    meta.result.then(result => fn(res, result), () => InternalServerError(res));
   } else {
-    success(args[1]);
+    fn(res);
   }
 });
 
 export const Catch = (error, content) => afterMethod(meta => {
-  const { result, args, exception, handle } = meta;
-  if (exception) {
-    handle();
-    error(args[1], content);
-  } else if(result && typeof result.then === "function") {
-    result.catch(() => error(args[1], content));
+  const [req, res] = meta.args;
+  if (meta.exception) {
+    const exception = meta.handle();
+    error(res, content);
+  } else if(meta.result && typeof meta.result.catch === "function") {
+    meta.result.catch(() => error(res, content));
   }
 });
 
-const resolveMethod = (res, code, content) => {
+const resolveMethod = (res, code, message) => {
   res.statusCode = code;
-  if(typeof content === "object") {
-    res.write(JSON.stringify(content));
-  } else if(typeof content === "string") {
-    res.write(content);
+  if(typeof message === "object") {
+    res.write(JSON.stringify(message));
+  } else if(typeof message === "string") {
+    res.write(JSON.stringify({ message }));
   }
   res.end();
 }
