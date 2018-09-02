@@ -3,6 +3,17 @@
   <h2>Ritley JS</h2>
 </p>
 
+#### Table of Contents
+
+- [about](https://github.com/k1r0s/ritley#about)
+- [features](https://github.com/k1r0s/ritley#features)
+- [packages](https://github.com/k1r0s/ritley#packages)
+- [how it works](https://github.com/k1r0s/ritley#how-it-works)
+- [alpha version](https://github.com/k1r0s/ritley#get-alpha)
+- [philosophy](https://github.com/k1r0s/ritley#philosophy)
+- [tutorial](https://github.com/k1r0s/ritley#tutorial)
+- [roadmap](https://github.com/k1r0s/ritley#roadmap)
+
 #### About
 Ritley is a small package __with ZERO dependencies__ that allows you to create server-side applications in no time. You can define `Resources` as classes which handle requests to the server. Also you can extend (inherit) previous entities to build more complex behaviors.
 
@@ -71,11 +82,11 @@ new DefaultResource;
 
 Now by doing `curl localhost:8080` you'll get a nice Hello World!
 
-#### Get v1
+#### Get alpha
 
 This repo is intended to be a complete override of v1
 
-You can check ritley-v1 [here](https://github.com/k1r0s/ritley-v1)
+You can check ritley-alpha [here](https://github.com/k1r0s/ritley-alpha)
 
 #### Philosophy
 
@@ -87,12 +98,15 @@ Ritley just provides the basics to sort and separate your code into domains as a
 
 Like React does, your resources will extend from `AbstractResource` to be able to listen calls having its first parameter on the constructor. You can ignore the constructor or simply override it by implementing `super(uri)` or by applying any reflection technique.
 
-#### Example Repo
+#### Tutorial
 
-[ritley-example](https://github.com/k1r0s/ritley-example)
+[series 1/3](https://dev.to/k1r0s/idiomatic-javascript-backend-part-1-4g0b)
+[series 2/3](https://dev.to/k1r0s/idiomatic-javascript-backend-part-2-4lhe)
+[series 3/3](https://dev.to/k1r0s/idiomatic-javascript-backend-part-3-1eii)
+[repo on series](https://github.com/k1r0s/ritley-tutorial)
 
 #### Roadmap
 - ~~Setup testing~~
-- Create examples for advanced behaviors
-- SSL support
-- WebSocket support
+- ~~Create examples for advanced behaviors~~
+- SSL support (apache facade?)
+- WebSocket support (another abstractclass?)
