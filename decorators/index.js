@@ -14,7 +14,7 @@ export const Method = {
     if(!proto[method]) proto[method] = function(...argList) {
       const [req, res] = argList;
       const predicate = listener =>
-        Path.createPath(this.$uri + listener.path).test(req.url);
+        Path.createPath((this.$uri || "") + listener.path).test(req.url);
       const found = listeners.find(predicate);
       if(found) this[found.key](...[ ...argList, predicate(found) ]);
       else BadRequest(res);

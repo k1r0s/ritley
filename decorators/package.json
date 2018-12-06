@@ -10,7 +10,7 @@
   "author": "k1r0s",
   "license": "ISC",
   "dependencies": {
-    "kaop-ts": "^4.0.0",
+    "kaop-ts": "^4.1.1",
     "path-parser": "^4.2.0"
   },
   "devDependencies": {

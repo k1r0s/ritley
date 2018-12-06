@@ -30,7 +30,7 @@ var AbstractResource = function () {
   AbstractResource.prototype.onRequest = function onRequest(req, res) {
     var methodName = req.method.toLowerCase();
     if (typeof this[methodName] !== "function") return console.warn("unhandled '" + methodName + "' request on " + this.$uri + " resource");
-    this[methodName](req, res);
+    return this[methodName](req, res);
   };
 
   return AbstractResource;
@@ -45,14 +45,15 @@ var BaseAdapter = function () {
   }
 
   BaseAdapter.prototype.handle = function handle(req, res) {
-    var timeout = setTimeout(this.timeout, 0, res);
-    for (var i = 0; i < this.listeners.length; i++) {
-      var instance = this.listeners[i];
-      if (instance.shouldHandle(req, this.config.base)) {
-        instance.onRequest(req, res);
-        clearTimeout(timeout);
-      }
-    }
+    var _this = this;
+
+    var willHandle = this.listeners.filter(function (listener) {
+      return listener.shouldHandle(req, _this.config.base);
+    });
+    if (!willHandle.length) return this.timeout(res);
+    return Promise.all(willHandle.map(function (listener) {
+      return listener.onRequest(req, res);
+    }));
   };
 
   BaseAdapter.prototype.register = function register(resourceInstance) {
@@ -62,6 +63,7 @@ var BaseAdapter = function () {
   BaseAdapter.prototype.timeout = function timeout(res) {
     res.statusCode = 404;
     res.end();
+    return Promise.resolve();
   };
 
   return BaseAdapter;

@@ -18,7 +18,7 @@ export class AbstractResource {
   onRequest(req, res) {
     const methodName = req.method.toLowerCase();
     if(typeof this[methodName] !== "function") return console.warn(`unhandled '${methodName}' request on ${this.$uri} resource`);
-    this[methodName](req, res);
+    return this[methodName](req, res);
   }
 }
 
@@ -30,14 +30,11 @@ export class BaseAdapter {
   }
 
   handle(req, res) {
-    const timeout = setTimeout(this.timeout, 0, res);
-    for (let i = 0; i < this.listeners.length; i++) {
-      const instance = this.listeners[i];
-      if(instance.shouldHandle(req, this.config.base)) {
-        instance.onRequest(req, res);
-        clearTimeout(timeout);
-      }
-    }
+    const willHandle = this.listeners.filter(listener =>
+      listener.shouldHandle(req, this.config.base));
+    if(!willHandle.length) return this.timeout(res);
+    return Promise.all(willHandle.map(listener =>
+      listener.onRequest(req, res)));
   }
 
   register(resourceInstance) {
@@ -47,5 +44,6 @@ export class BaseAdapter {
   timeout(res) {
     res.statusCode = 404;
     res.end();
+    return Promise.resolve();
   }
 }

@@ -7,6 +7,7 @@ const wrapInvoke = (klass, method) => (context, ...args) => klass.prototype[meth
 describe("ritley's core suite", () => {
 
   const reqStub = { url: "/", on(ev, cbk) { ev === "end" && cbk() } };
+  const resStub = { end: () => {} };
 
   const adapter = setAdapter(BaseAdapter);
 
@@ -20,12 +21,12 @@ describe("ritley's core suite", () => {
   const instance = new DummyResource();
 
   describe("Method HTTP verb interception", () => {
-
     beforeEach(() => {
       sinon.stub(instance, "get")
       sinon.stub(instance, "post")
       sinon.stub(instance, "put")
       sinon.stub(instance, "delete")
+      sinon.stub(resStub, "end")
     });
 
     afterEach(() => {
@@ -33,54 +34,55 @@ describe("ritley's core suite", () => {
       instance.post.restore();
       instance.put.restore();
       instance.delete.restore();
+      resStub.end.restore();
     });
 
     it("[GET] AbstractResource subclasses should be able to intercept calls", () => {
 
       const reqStubGet = { ...reqStub, method: "GET" };
 
-      adapter.handle(reqStubGet);
-      sinon.assert.calledWith(instance.get, reqStubGet);
-      sinon.assert.notCalled(instance.put);
-      sinon.assert.notCalled(instance.delete);
-      sinon.assert.notCalled(instance.post);
-
+      return adapter.handle(reqStubGet, resStub).then(() => {
+        sinon.assert.calledWith(instance.get, reqStubGet, resStub);
+        sinon.assert.notCalled(instance.put);
+        sinon.assert.notCalled(instance.delete);
+        sinon.assert.notCalled(instance.post);
+      });
     });
 
     it("[POST] AbstractResource subclasses should be able to intercept calls", () => {
 
       const reqStubPost = { ...reqStub, method: "POST" };
 
-      adapter.handle(reqStubPost);
-      sinon.assert.calledWith(instance.post, reqStubPost);
-      sinon.assert.notCalled(instance.put);
-      sinon.assert.notCalled(instance.delete);
-      sinon.assert.notCalled(instance.get);
-
+      return adapter.handle(reqStubPost, resStub).then(() => {
+        sinon.assert.calledWith(instance.post, reqStubPost, resStub);
+        sinon.assert.notCalled(instance.put);
+        sinon.assert.notCalled(instance.delete);
+        sinon.assert.notCalled(instance.get);
+      });
     });
 
     it("[PUT] AbstractResource subclasses should be able to intercept calls", () => {
 
       const reqStubPut = { ...reqStub, method: "PUT" };
 
-      adapter.handle(reqStubPut);
-      sinon.assert.calledWith(instance.put, reqStubPut);
-      sinon.assert.notCalled(instance.post);
-      sinon.assert.notCalled(instance.delete);
-      sinon.assert.notCalled(instance.get);
-
+      adapter.handle(reqStubPut, resStub).then(() => {
+        sinon.assert.calledWith(instance.put, reqStubPut, resStub);
+        sinon.assert.notCalled(instance.post);
+        sinon.assert.notCalled(instance.delete);
+        sinon.assert.notCalled(instance.get);
+      });
     });
 
     it("[DELETE] AbstractResource subclasses should be able to intercept calls", () => {
 
       const reqStubDelete = { ...reqStub, method: "DELETE" };
 
-      adapter.handle(reqStubDelete);
-      sinon.assert.calledWith(instance.delete, reqStubDelete);
-      sinon.assert.notCalled(instance.post);
-      sinon.assert.notCalled(instance.put);
-      sinon.assert.notCalled(instance.get);
-
+      adapter.handle(reqStubDelete, resStub).then(() => {
+        sinon.assert.calledWith(instance.delete, reqStubDelete, resStub);
+        sinon.assert.notCalled(instance.post);
+        sinon.assert.notCalled(instance.put);
+        sinon.assert.notCalled(instance.get);
+      });
     });
   });
 

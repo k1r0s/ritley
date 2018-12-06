@@ -33,7 +33,7 @@ var Method = {
             res = argList[1];
 
         var predicate = function predicate(listener) {
-          return Path.createPath(_this.$uri + listener.path).test(req.url);
+          return Path.createPath((_this.$uri || "") + listener.path).test(req.url);
         };
         var found = listeners.find(predicate);
         if (found) this[found.key].apply(this, [].concat(argList, [predicate(found)]));else BadRequest(res);
