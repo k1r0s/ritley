@@ -2,12 +2,15 @@
   "name": "example",
   "version": "1.0.0",
   "scripts": {
-    "start": "node ritley"
+    "ritley": "node ritley",
+    "fastify": "node fastify",
+    "polka": "node polka",
+    "express": "node express"
   },
   "license": "ISC",
   "dependencies": {
-    "@ritley/core": "0.1.0",
-    "@ritley/standalone-adapter": "0.2.0",
+    "@ritley/core": "^0.4.0",
+    "@ritley/standalone-adapter": "^0.2.0",
     "express": "^4.16.3",
     "fastify": "^1.9.0",
     "polka": "^0.4.0"
