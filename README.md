@@ -108,5 +108,5 @@ Like React does, your resources will extend from `AbstractResource` to be able t
 #### Roadmap
 - ~~Setup testing~~
 - ~~Create examples for advanced behaviors~~
-- SSL support (apache facade?)
-- WebSocket support (another abstractclass?)
+- WebSocket support (another package/abstractclass?)
+- WebPush support (another package/abstractclass?)
