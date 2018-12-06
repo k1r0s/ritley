@@ -100,10 +100,10 @@ Like React does, your resources will extend from `AbstractResource` to be able t
 
 #### Tutorial
 
-[series 1/3](https://dev.to/k1r0s/idiomatic-javascript-backend-part-1-4g0b)
-[series 2/3](https://dev.to/k1r0s/idiomatic-javascript-backend-part-2-4lhe)
-[series 3/3](https://dev.to/k1r0s/idiomatic-javascript-backend-part-3-1eii)
-[repo on series](https://github.com/k1r0s/ritley-tutorial)
+- [series 1/3](https://dev.to/k1r0s/idiomatic-javascript-backend-part-1-4g0b)
+- [series 2/3](https://dev.to/k1r0s/idiomatic-javascript-backend-part-2-4lhe)
+- [series 3/3](https://dev.to/k1r0s/idiomatic-javascript-backend-part-3-1eii)
+- [repo on series](https://github.com/k1r0s/ritley-tutorial)
 
 #### Roadmap
 - ~~Setup testing~~
