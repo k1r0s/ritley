@@ -22,8 +22,8 @@ var AbstractResource = function () {
     AbstractResource.$singleton.register(this);
   }
 
-  AbstractResource.prototype.shouldHandle = function shouldHandle(req, base) {
-    var matchingUrl = normalizeUrl(base) + normalizeUrl(this.$uri);
+  AbstractResource.prototype.shouldHandle = function shouldHandle(req, prefix) {
+    var matchingUrl = normalizeUrl(prefix) + normalizeUrl(this.$uri);
     return req.url.startsWith(matchingUrl);
   };
 
@@ -48,7 +48,7 @@ var BaseAdapter = function () {
     var _this = this;
 
     var willHandle = this.listeners.filter(function (listener) {
-      return listener.shouldHandle(req, _this.config.base);
+      return listener.shouldHandle(req, _this.config.reqPrefix);
     });
     if (!willHandle.length) return this.timeout(res);
     return Promise.all(willHandle.map(function (listener) {

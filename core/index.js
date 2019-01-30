@@ -10,8 +10,8 @@ export class AbstractResource {
     AbstractResource.$singleton.register(this);
   }
 
-  shouldHandle(req, base) {
-    const matchingUrl = normalizeUrl(base) + normalizeUrl(this.$uri);
+  shouldHandle(req, prefix) {
+    const matchingUrl = normalizeUrl(prefix) + normalizeUrl(this.$uri);
     return req.url.startsWith(matchingUrl);
   }
 
@@ -31,7 +31,7 @@ export class BaseAdapter {
 
   handle(req, res) {
     const willHandle = this.listeners.filter(listener =>
-      listener.shouldHandle(req, this.config.base));
+      listener.shouldHandle(req, this.config.reqPrefix));
     if(!willHandle.length) return this.timeout(res);
     return Promise.all(willHandle.map(listener =>
       listener.onRequest(req, res)));
