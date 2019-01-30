@@ -33,7 +33,7 @@ var Method = {
             res = argList[1];
 
         var predicate = function predicate(listener) {
-          return Path.createPath((_this.$uri || "") + listener.path).test(req.url);
+          return Path.createPath(listener.path).test(req.url.split(_this.$uri).pop());
         };
         var found = listeners.find(predicate);
         if (found) this[found.key].apply(this, [].concat(argList, [predicate(found)]));else BadRequest(res);
@@ -143,7 +143,7 @@ var Default = function Default(fn) {
         return InternalServerError(res);
       });
     } else {
-      fn(res);
+      fn(res, meta.result);
     }
   });
 };

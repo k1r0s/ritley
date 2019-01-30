@@ -14,7 +14,7 @@ export const Method = {
     if(!proto[method]) proto[method] = function(...argList) {
       const [req, res] = argList;
       const predicate = listener =>
-        Path.createPath((this.$uri || "") + listener.path).test(req.url);
+        Path.createPath(listener.path).test(req.url.split(this.$uri).pop());
       const found = listeners.find(predicate);
       if(found) this[found.key](...[ ...argList, predicate(found) ]);
       else BadRequest(res);
@@ -85,7 +85,7 @@ export const Default = fn => afterMethod(meta => {
   } else if(meta.result && typeof meta.result.then === "function") {
     meta.result.then(result => fn(res, result), () => InternalServerError(res));
   } else {
-    fn(res);
+    fn(res, meta.result);
   }
 });
 
