@@ -19,31 +19,60 @@ var StandaloneAdapter = function (_BaseAdapter) {
 
     var _this = _possibleConstructorReturn(this, _BaseAdapter.call(this, config));
 
-    _this.server = _this.createServer();
-    if (_this.config.static && _this.config.base) {
-      _this.setStaticSrv();
-    }
+    _this.initialize();
     return _this;
   }
 
-  StandaloneAdapter.prototype.createServer = function createServer() {
-    var _this2 = this;
-
-    var nodeInstance = http.createServer();
-    nodeInstance.listen(this.config.port);
-    nodeInstance.on("request", function () {
-      return _this2.handle.apply(_this2, arguments);
-    });
-    return nodeInstance;
+  StandaloneAdapter.prototype.initialize = function initialize() {
+    this.createServer();
+    this.createStaticMw();
+    this.start();
   };
 
-  StandaloneAdapter.prototype.setStaticSrv = function setStaticSrv() {
+  StandaloneAdapter.prototype.start = function start() {
+    var _this2 = this;
+
+    this.server.listen(this.config.port);
+    this.server.on("request", function (req, res) {
+      return _this2.handle(req, res);
+    });
+  };
+
+  StandaloneAdapter.prototype.handle = function handle(req, res) {
     var _this3 = this;
 
-    var ecstatic = require("ecstatic");
-    var staticMiddleware = ecstatic({ root: "" + this.config.static, handleError: false });
-    this.server.on("request", function (req, res) {
-      return !req.url.startsWith(_this3.config.base) && staticMiddleware(req, res);
+    if (!this.middlw) {
+      return _BaseAdapter.prototype.handle.call(this, req, res);
+    } else if (req.url.startsWith(this.config.reqPrefix)) {
+      return _BaseAdapter.prototype.handle.call(this, req, res);
+    } else {
+      return Promise.resolve().then(function () {
+        return _this3.handleStatic(req, res);
+      });
+    }
+  };
+
+  StandaloneAdapter.prototype.createServer = function createServer() {
+    this.server = http.createServer();
+  };
+
+  StandaloneAdapter.prototype.createStaticMw = function createStaticMw() {
+    if (this.config.contentBase && this.config.reqPrefix) {
+      var ecstatic = require("ecstatic");
+      this.middlw = ecstatic({ root: "" + this.config.contentBase, handleError: false });
+    }
+  };
+
+  StandaloneAdapter.prototype.handleStatic = function handleStatic(req, res) {
+    var _this4 = this;
+
+    this.middlw(req, res, function () {
+      if (_this4.config.historyApiFallback && req.method === "GET" && !/\./.test(req.url)) {
+        _this4.middlw(Object.assign(req, { url: _this4.config.historyApiFallback }), res);
+      } else {
+        res.statusCode = 404;
+        res.end();
+      }
     });
   };
 

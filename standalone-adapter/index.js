@@ -4,23 +4,49 @@ import { BaseAdapter } from "@ritley/core";
 export default class StandaloneAdapter extends BaseAdapter {
   constructor(config) {
     super(config);
-    this.server = this.createServer();
-    if(this.config.static && this.config.base) {
-      this.setStaticSrv();
+    this.initialize();
+  }
+
+  initialize() {
+    this.createServer();
+    this.createStaticMw();
+    this.start();
+  }
+
+  start() {
+    this.server.listen(this.config.port);
+    this.server.on("request", (req, res) => this.handle(req, res));
+  }
+
+  handle(req, res) {
+    if(!this.middlw) {
+      return super.handle(req, res);
+    } else if (req.url.startsWith(this.config.reqPrefix)) {
+      return super.handle(req, res);
+    } else {
+      return Promise.resolve().then(() => this.handleStatic(req, res));
     }
   }
 
   createServer() {
-    const nodeInstance = http.createServer();
-    nodeInstance.listen(this.config.port);
-    nodeInstance.on("request", (...args) => this.handle(...args));
-    return nodeInstance;
+    this.server = http.createServer();
   }
 
-  setStaticSrv() {
-    const ecstatic = require("ecstatic");
-    const staticMiddleware = ecstatic({ root: `${this.config.static}`, handleError: false });
-    this.server.on("request", (req, res) =>
-      !req.url.startsWith(this.config.base) && staticMiddleware(req, res));
+  createStaticMw() {
+    if(this.config.contentBase && this.config.reqPrefix) {
+      const ecstatic = require("ecstatic");
+      this.middlw = ecstatic({ root: `${this.config.contentBase}`, handleError: false });
+    }
+  }
+
+  handleStatic(req, res) {
+    this.middlw(req, res, () => {
+      if (this.config.historyApiFallback && req.method === "GET" && !/\./.test(req.url)) {
+        this.middlw(Object.assign(req, { url: this.config.historyApiFallback }), res);
+      } else {
+        res.statusCode = 404;
+        res.end();
+      }
+    })
   }
 }
