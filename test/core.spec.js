@@ -94,9 +94,9 @@ describe("ritley's core suite", () => {
       { $uri: "/dummy2", onRequest: sinon.stub(), shouldHandle: sinon.stub() }
     ];
 
-    const timeout = sinon.stub();
+    const notFound = sinon.stub();
     const config = {};
-    const context = { listeners, timeout, config };
+    const context = { listeners, notFound, config };
 
     it("[METHOD] ::handle should be able to invoke interceptors on matching request", done => {
       const handleStub = wrapInvoke(BaseAdapter, "handle");
@@ -112,14 +112,14 @@ describe("ritley's core suite", () => {
       sinon.assert.calledWith(listeners[0].onRequest, reqStubDummy);
       sinon.assert.notCalled(listeners[1].onRequest);
       sinon.assert.notCalled(listeners[2].onRequest);
-      sinon.assert.notCalled(context.timeout);
+      sinon.assert.notCalled(context.notFound);
 
       const reqStubDummy2 = { ...reqStub, url: "/dummy3" };
 
       handleStub(context, reqStubDummy2);
 
       setTimeout(() =>
-        sinon.assert.called(context.timeout), 1);
+        sinon.assert.called(context.notFound), 1);
 
       setTimeout(done, 2);
     });
@@ -200,6 +200,15 @@ describe("ritley's core suite", () => {
 
       const shouldHandleStub = wrapInvoke(AbstractResource, "shouldHandle");
 
+      const regexpUriContext = { ...context, $uri: /^(?!\/api\/).*/ }
+      assert.deepEqual(shouldHandleStub(regexpUriContext, { url: "/bundle.js" }), true);
+      assert.deepEqual(shouldHandleStub(regexpUriContext, { url: "/api/cosas" }), false);
+      assert.deepEqual(shouldHandleStub(regexpUriContext, { url: "/api/otras-cosas" }), false);
+      assert.deepEqual(shouldHandleStub(regexpUriContext, { url: "/" }), true);
+      assert.deepEqual(shouldHandleStub(regexpUriContext, { url: "/global.css" }), true);
+      assert.deepEqual(shouldHandleStub(regexpUriContext, { url: "/tu-madre-en-bicicleta.png" }), true);
+
+
       const emptyUriContext = { ...context, $uri: undefined }
       assert.deepEqual(shouldHandleStub(emptyUriContext, reqStub), true);
 
@@ -210,11 +219,10 @@ describe("ritley's core suite", () => {
       assert.deepEqual(shouldHandleStub(context, reqWithParamsStub), true);
 
       const reqNotToBeHandled = { ...reqStub, url: "/cor" };
-      assert.deepEqual(shouldHandleStub(context, reqNotToBeHandled, "/car"), false);
+      assert.deepEqual(shouldHandleStub(context, reqNotToBeHandled), false);
 
       const reqWithPrefix = { ...reqStub, url: "/something/car" };
-      assert.deepEqual(shouldHandleStub(context, reqWithPrefix, "/something"), true);
-      assert.deepEqual(shouldHandleStub(context, reqWithPrefix, "/somethinj"), false);
+      assert.deepEqual(shouldHandleStub(context, reqWithPrefix), true);
     });
 
     it("[METHOD] ::onRequest should only dispatch to corresponding implemented method", () => {
