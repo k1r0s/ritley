@@ -113,12 +113,12 @@ var Throws = function Throws(errorType, fn) {
         res = _meta$args4[1];
 
     if (meta.exception && meta.exception instanceof errorType) {
-      var exception = meta.handle();
-      fn(res, exception.message);
+      var _exception = meta.handle();
+      fn(res, { error: errorType.name, message: _exception.message });
     } else if (meta.result && typeof meta.result.catch === "function") {
       meta.result = meta.result.catch(function (exception) {
         if (exception instanceof errorType) {
-          fn(res, exception.message);
+          fn(res, { error: errorType.name, message: exception.message });
         } else {
           throw exception;
         }
@@ -134,13 +134,15 @@ var Default = function Default(fn) {
         res = _meta$args5[1];
 
     if (meta.exception) {
-      var exception = meta.handle();
-      InternalServerError(res, exception.message);
+      var _exception2 = meta.handle();
+      console.error(_exception2);
+      InternalServerError(res);
     } else if (meta.result && typeof meta.result.then === "function") {
       meta.result.then(function (result) {
         return fn(res, result);
       }, function () {
-        return InternalServerError(res);
+        console.error(exception);
+        InternalServerError(res);
       });
     } else {
       fn(res, meta.result);
@@ -155,7 +157,7 @@ var Catch = function Catch(error, content) {
         res = _meta$args6[1];
 
     if (meta.exception) {
-      var exception = meta.handle();
+      meta.handle();
       error(res, content);
     } else if (meta.result && typeof meta.result.catch === "function") {
       meta.result.catch(function () {
@@ -166,7 +168,6 @@ var Catch = function Catch(error, content) {
 };
 
 var resolveMethod = function resolveMethod(res, code, message) {
-  console.log(code, message);
   if (res.headersSent) return;
   res.writeHead(code);
   if ((typeof message === "undefined" ? "undefined" : _typeof(message)) === "object") {

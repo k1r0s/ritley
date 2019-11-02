@@ -65,11 +65,11 @@ export const Throws = (errorType, fn) => afterMethod(meta => {
   const [req, res] = meta.args;
   if (meta.exception && meta.exception instanceof errorType) {
     const exception = meta.handle();
-    fn(res, exception.message);
+    fn(res, { error: errorType.name, message: exception.message });
   } else if(meta.result && typeof meta.result.catch === "function") {
     meta.result = meta.result.catch(exception => {
       if (exception instanceof errorType) {
-        fn(res, exception.message);
+        fn(res, { error: errorType.name, message: exception.message });
       } else {
         throw exception;
       }
@@ -81,9 +81,13 @@ export const Default = fn => afterMethod(meta => {
   const [req, res] = meta.args;
   if (meta.exception) {
     const exception = meta.handle();
-    InternalServerError(res, exception.message);
+    console.error(exception);
+    InternalServerError(res);
   } else if(meta.result && typeof meta.result.then === "function") {
-    meta.result.then(result => fn(res, result), () => InternalServerError(res));
+    meta.result.then(result => fn(res, result), () => {
+      console.error(exception);
+      InternalServerError(res);
+    });
   } else {
     fn(res, meta.result);
   }
@@ -92,7 +96,7 @@ export const Default = fn => afterMethod(meta => {
 export const Catch = (error, content) => afterMethod(meta => {
   const [req, res] = meta.args;
   if (meta.exception) {
-    const exception = meta.handle();
+    meta.handle();
     error(res, content);
   } else if(meta.result && typeof meta.result.catch === "function") {
     meta.result.catch(() => error(res, content));
