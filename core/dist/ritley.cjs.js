@@ -27,7 +27,6 @@ var AbstractResource = function () {
       return this.$uri.test(req.url);
     } else {
       var normalized = normalizeUrl(this.$uri);
-      console.log(req.url, "includes", normalized);
       return req.url.includes(normalized);
     }
   };

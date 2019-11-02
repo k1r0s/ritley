@@ -15,7 +15,6 @@ export class AbstractResource {
       return this.$uri.test(req.url);
     } else {
       const normalized = normalizeUrl(this.$uri);
-      console.log(req.url, "includes", normalized);
       return req.url.includes(normalized);
     }
   }

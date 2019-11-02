@@ -100,7 +100,8 @@ export const Catch = (error, content) => afterMethod(meta => {
 });
 
 const resolveMethod = (res, code, message) => {
-  res.statusCode = code;
+  if(res.headersSent) return;
+  res.writeHead(code);
   if(typeof message === "object") {
     res.write(JSON.stringify(message));
   } else if(typeof message === "string") {

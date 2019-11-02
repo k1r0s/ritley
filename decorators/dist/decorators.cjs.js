@@ -166,7 +166,9 @@ var Catch = function Catch(error, content) {
 };
 
 var resolveMethod = function resolveMethod(res, code, message) {
-  res.statusCode = code;
+  console.log(code, message);
+  if (res.headersSent) return;
+  res.writeHead(code);
   if ((typeof message === "undefined" ? "undefined" : _typeof(message)) === "object") {
     res.write(JSON.stringify(message));
   } else if (typeof message === "string") {
