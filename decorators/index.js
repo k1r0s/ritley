@@ -84,7 +84,7 @@ export const Default = fn => afterMethod(meta => {
     console.error(exception);
     InternalServerError(res);
   } else if(meta.result && typeof meta.result.then === "function") {
-    meta.result.then(result => fn(res, result), () => {
+    meta.result.then(result => fn(res, result), exception => {
       console.error(exception);
       InternalServerError(res);
     });

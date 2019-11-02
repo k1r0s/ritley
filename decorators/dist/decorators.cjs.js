@@ -113,8 +113,8 @@ var Throws = function Throws(errorType, fn) {
         res = _meta$args4[1];
 
     if (meta.exception && meta.exception instanceof errorType) {
-      var _exception = meta.handle();
-      fn(res, { error: errorType.name, message: _exception.message });
+      var exception = meta.handle();
+      fn(res, { error: errorType.name, message: exception.message });
     } else if (meta.result && typeof meta.result.catch === "function") {
       meta.result = meta.result.catch(function (exception) {
         if (exception instanceof errorType) {
@@ -134,13 +134,13 @@ var Default = function Default(fn) {
         res = _meta$args5[1];
 
     if (meta.exception) {
-      var _exception2 = meta.handle();
-      console.error(_exception2);
+      var exception = meta.handle();
+      console.error(exception);
       InternalServerError(res);
     } else if (meta.result && typeof meta.result.then === "function") {
       meta.result.then(function (result) {
         return fn(res, result);
-      }, function () {
+      }, function (exception) {
         console.error(exception);
         InternalServerError(res);
       });
