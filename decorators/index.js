@@ -9,17 +9,21 @@ export const Dependency = (prop, prov) => beforeInstance(inject.assign({ [prop]:
 export const Method = {
   _createMethodWrap: (method, path) => (proto, key, descriptor) => {
     const METHOD_DECORATOR_META_KEY = `ritley-listeners-${method}`;
-    let listeners = Reflect.getMetadata(METHOD_DECORATOR_META_KEY, proto);
-    if(!listeners) listeners = [];
+    const listeners = Reflect.getMetadata(METHOD_DECORATOR_META_KEY, proto) || [];
     if(!proto[method]) proto[method] = function(...argList) {
       const [req, res] = argList;
-      const predicate = listener =>
-        Path.createPath(listener.path).test(req.url.split(this.$uri).pop());
+
+      const predicate = listener => {
+        if(!listener.path) return req.url === this.$uri;
+        else return Path.createPath(listener.path).test(req.url.split(this.$uri).pop());
+      }
+
       const found = listeners.find(predicate);
       if(found) this[found.key](...[ ...argList, predicate(found) ]);
       else BadRequest(res);
     }
-    listeners.push({ path, key });
+    const list = { path, key };
+    listeners.push(list);
     Reflect.defineMetadata(METHOD_DECORATOR_META_KEY, listeners, proto);
     return descriptor;
   },

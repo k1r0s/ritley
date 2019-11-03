@@ -20,8 +20,7 @@ var Method = {
   _createMethodWrap: function _createMethodWrap(method, path) {
     return function (proto, key, descriptor) {
       var METHOD_DECORATOR_META_KEY = "ritley-listeners-" + method;
-      var listeners = Reflect.getMetadata(METHOD_DECORATOR_META_KEY, proto);
-      if (!listeners) listeners = [];
+      var listeners = Reflect.getMetadata(METHOD_DECORATOR_META_KEY, proto) || [];
       if (!proto[method]) proto[method] = function () {
         var _this = this;
 
@@ -32,13 +31,16 @@ var Method = {
         var req = argList[0],
             res = argList[1];
 
+
         var predicate = function predicate(listener) {
-          return Path.createPath(listener.path).test(req.url.split(_this.$uri).pop());
+          if (!listener.path) return req.url === _this.$uri;else return Path.createPath(listener.path).test(req.url.split(_this.$uri).pop());
         };
+
         var found = listeners.find(predicate);
         if (found) this[found.key].apply(this, [].concat(argList, [predicate(found)]));else BadRequest(res);
       };
-      listeners.push({ path: path, key: key });
+      var list = { path: path, key: key };
+      listeners.push(list);
       Reflect.defineMetadata(METHOD_DECORATOR_META_KEY, listeners, proto);
       return descriptor;
     };

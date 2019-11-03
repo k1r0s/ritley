@@ -20,7 +20,6 @@ const {
 const decorateMethod = (target, method, decorator) => {
   const descriptor = Object.getOwnPropertyDescriptor(target.prototype, method);
   Object.defineProperty(target.prototype, method, decorator(target.prototype, method, descriptor));
-  return target;
 }
 
 describe("ritley's decorators suite", () => {
@@ -57,24 +56,27 @@ describe("ritley's decorators suite", () => {
   });
 
   describe("named export `Method`", () => {
-    class DummyResource {
-      constructor(uri) {
-        this.$uri = uri;
-      }
-
-      method1() {}
-      method2() {}
-    }
 
     it("Method.get should dispatch to the proper method having its path", () => {
-      const DecoratedClass = decorateMethod(DummyResource, "method1", Method.get("/filter/:prop/:value"));
 
-      const dummyResource = new DecoratedClass("/some");
+      class DummyResource {
+        constructor(uri) {
+          this.$uri = uri;
+        }
+
+        method1() {}
+      }
+
+      decorateMethod(DummyResource, "method1", Method.get("/filter/:prop/:value"));
+
+      const dummyResource = new DummyResource("/some");
 
       sinon.stub(dummyResource, "method1");
 
       const req = { url: "/some/filter/try/1"};
-      const res = { end: sinon.stub() };
+      const res = {};
+      res.end = sinon.stub();
+      res.writeHead = sinon.stub();
 
       dummyResource.get(req, res);
 
@@ -82,12 +84,52 @@ describe("ritley's decorators suite", () => {
       sinon.assert.calledWith(dummyResource.method1, req, res, { prop: "try", value: "1" });
     });
 
-    it("if url doesn\'t match specified pattern request should not be handled", () => {
-      const DecoratedClass = decorateMethod(DummyResource, "method2", Method.get("/filter"));
+    it("Method.get should handle same http verb within different methods", () => {
+      class DummyResource {
+        constructor(uri) {
+          this.$uri = uri;
+        }
 
-      const dummyResource = new DecoratedClass("/some");
+        method2() {}
+        method3() {}
+      }
+
+      decorateMethod(DummyResource, "method2", Method.get());
+      decorateMethod(DummyResource, "method3", Method.get("/aaa"));
+
+      const dummyResource = new DummyResource("/some");
 
       sinon.stub(dummyResource, "method2");
+      sinon.stub(dummyResource, "method3");
+
+      const req = {};
+      req.url = "/some/aaa";
+      const res = {};
+      res.end = sinon.stub();
+      res.writeHead = sinon.stub();
+
+      dummyResource.get(req, res);
+      sinon.assert.called(dummyResource.method3);
+
+      // req.url = "/some/aaa";
+      // dummyResource.get(req, res);
+      // sinon.assert.calledWith(dummyResource.method3, req, res);
+    });
+
+    it("if url doesn\'t match specified pattern request should not be handled", () => {
+      class DummyResource {
+        constructor(uri) {
+          this.$uri = uri;
+        }
+
+        method4() {}
+      }
+
+      decorateMethod(DummyResource, "method4", Method.get("/filter"));
+
+      const dummyResource = new DummyResource("/some");
+
+      sinon.stub(dummyResource, "method4");
 
       const req = {};
       req.url = "/another-url"
@@ -97,9 +139,7 @@ describe("ritley's decorators suite", () => {
 
       dummyResource.get(req, res);
 
-      sinon.assert.called(res.end);
-      sinon.assert.calledWith(res.writeHead, 400);
-      sinon.assert.notCalled(dummyResource.method2);
+      sinon.assert.notCalled(dummyResource.method4);
     });
   });
 
@@ -110,9 +150,9 @@ describe("ritley's decorators suite", () => {
     }
 
     it("should be able to transform req and append query property with parsed url params", () => {
-      const DecoratedClass = decorateMethod(DummyResource, "get", ReqTransformQuery);
+      decorateMethod(DummyResource, "get", ReqTransformQuery);
 
-      const dummyResource = new DecoratedClass();
+      const dummyResource = new DummyResource();
 
       const req = { url: "/stuff?prop1=1&prop2=2" };
 
@@ -128,9 +168,9 @@ describe("ritley's decorators suite", () => {
     }
 
     it("should be able to transform the method into an async task which will delay method execution till body is resolved", done => {
-      const DecoratedClass = decorateMethod(DummyResource, "post", ReqTransformBodySync);
+      decorateMethod(DummyResource, "post", ReqTransformBodySync);
 
-      const dummyResource = new DecoratedClass();
+      const dummyResource = new DummyResource();
 
       const phrase = "roses are red";
 
@@ -155,9 +195,9 @@ describe("ritley's decorators suite", () => {
     }
 
     it("should be able to create req.body prop which will be a promise to resolve request\'s payload", done => {
-      const DecoratedClass = decorateMethod(DummyResource, "post", ReqTransformBodyAsync);
+      decorateMethod(DummyResource, "post", ReqTransformBodyAsync);
 
-      const dummyResource = new DecoratedClass();
+      const dummyResource = new DummyResource();
 
       const phrase = "roses are red";
 
@@ -194,9 +234,9 @@ describe("ritley's decorators suite", () => {
     const result = { message: "test is right "};
 
     it("should be able to resolve http request when returned promise resolves properly", () => {
-      const DecoratedClass = decorateMethod(DummyResource, "post", Default(HTTPVERBS.Ok));
+      decorateMethod(DummyResource, "post", Default(HTTPVERBS.Ok));
 
-      const dummyResource = new DecoratedClass();
+      const dummyResource = new DummyResource();
 
       const res = {};
       res.end = sinon.stub();
@@ -211,9 +251,9 @@ describe("ritley's decorators suite", () => {
     });
 
     it("should be able to resolve `InternalServerError` when returned promise rejects", () => {
-      const DecoratedClass = decorateMethod(DummyResource, "put", Default(HTTPVERBS.Ok));
+      decorateMethod(DummyResource, "put", Default(HTTPVERBS.Ok));
 
-      const dummyResource = new DecoratedClass();
+      const dummyResource = new DummyResource();
 
       const res = {};
       res.end = sinon.stub();
@@ -227,9 +267,9 @@ describe("ritley's decorators suite", () => {
     });
 
     it("should be able to catch syncronous exceptions if any", done => {
-      const DecoratedClass = decorateMethod(DummyResource, "delete", Default(HTTPVERBS.Ok));
+      decorateMethod(DummyResource, "delete", Default(HTTPVERBS.Ok));
 
-      const dummyResource = new DecoratedClass();
+      const dummyResource = new DummyResource();
 
       const res = {};
       res.end = sinon.stub();
@@ -262,9 +302,9 @@ describe("ritley's decorators suite", () => {
     const result = { message: "result is wrong, but test right"};
 
     it("should be able to resolve http request when returned promise rejects", () => {
-      const DecoratedClass = decorateMethod(DummyResource, "post", Catch(HTTPVERBS.BadRequest, result));
+      decorateMethod(DummyResource, "post", Catch(HTTPVERBS.BadRequest, result));
 
-      const dummyResource = new DecoratedClass();
+      const dummyResource = new DummyResource();
 
       const res = {};
       res.end = sinon.stub();
@@ -279,9 +319,9 @@ describe("ritley's decorators suite", () => {
     });
 
     it("should be able to catch syncronous exceptions if any", done => {
-      const DecoratedClass = decorateMethod(DummyResource, "put", Catch(HTTPVERBS.BadRequest, result));
+      decorateMethod(DummyResource, "put", Catch(HTTPVERBS.BadRequest, result));
 
-      const dummyResource = new DecoratedClass();
+      const dummyResource = new DummyResource();
 
       const res = {};
       res.end = sinon.stub();
@@ -319,9 +359,9 @@ describe("ritley's decorators suite", () => {
     }
 
     it("should be able to capture specific errors in rejections", () => {
-      const DecoratedClass = decorateMethod(DummyResource, "post", Throws(ReferenceError, HTTPVERBS.BadRequest));
+      decorateMethod(DummyResource, "post", Throws(ReferenceError, HTTPVERBS.BadRequest));
 
-      const dummyResource = new DecoratedClass();
+      const dummyResource = new DummyResource();
 
       const res = {};
       res.end = sinon.stub();
@@ -336,9 +376,9 @@ describe("ritley's decorators suite", () => {
     });
 
     it("should be able to capture specific errors (synchronous)", () => {
-      const DecoratedClass = decorateMethod(DummyResource, "put", Throws(ReferenceError, HTTPVERBS.BadRequest));
+      decorateMethod(DummyResource, "put", Throws(ReferenceError, HTTPVERBS.BadRequest));
 
-      const dummyResource = new DecoratedClass();
+      const dummyResource = new DummyResource();
 
       const res = {};
       res.end = sinon.stub();
@@ -353,9 +393,9 @@ describe("ritley's decorators suite", () => {
     });
 
     it("should throw the exception if no matching type is defined", () => {
-      const DecoratedClass = decorateMethod(DummyResource, "pat", Throws(TypeError, HTTPVERBS.BadRequest));
+      decorateMethod(DummyResource, "pat", Throws(TypeError, HTTPVERBS.BadRequest));
 
-      const dummyResource = new DecoratedClass();
+      const dummyResource = new DummyResource();
 
       const res = {};
       res.end = sinon.stub();
