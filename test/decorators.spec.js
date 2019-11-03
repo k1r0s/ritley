@@ -89,12 +89,16 @@ describe("ritley's decorators suite", () => {
 
       sinon.stub(dummyResource, "method2");
 
-      const req = { url: "/another-url"};
-      const res = { end: sinon.stub() };
+      const req = {};
+      req.url = "/another-url"
+      const res = {};
+      res.end = sinon.stub();
+      res.writeHead = sinon.stub();
 
       dummyResource.get(req, res);
 
       sinon.assert.called(res.end);
+      sinon.assert.calledWith(res.writeHead, 400);
       sinon.assert.notCalled(dummyResource.method2);
     });
   });
@@ -189,33 +193,36 @@ describe("ritley's decorators suite", () => {
 
     const result = { message: "test is right "};
 
-    it("should be able to resolve http request when returned promise resolves properly", done => {
+    it("should be able to resolve http request when returned promise resolves properly", () => {
       const DecoratedClass = decorateMethod(DummyResource, "post", Default(HTTPVERBS.Ok));
 
       const dummyResource = new DecoratedClass();
 
+      const res = {};
+      res.end = sinon.stub();
+      res.write = sinon.stub();
+      res.writeHead = sinon.stub();
 
-      const res = { end: sinon.stub(), write: sinon.stub(), statusCode: undefined };
-
-      dummyResource.post(undefined, res).then(() => {
-        assert.deepEqual(res.statusCode, 200);
+      return dummyResource.post(undefined, res).then(() => {
+        sinon.assert.calledWith(res.writeHead, 200);
         sinon.assert.calledWith(res.write, JSON.stringify(result));
         sinon.assert.called(res.end);
-        done();
       });
     });
 
-    it("should be able to resolve `InternalServerError` when returned promise rejects", done => {
+    it("should be able to resolve `InternalServerError` when returned promise rejects", () => {
       const DecoratedClass = decorateMethod(DummyResource, "put", Default(HTTPVERBS.Ok));
 
       const dummyResource = new DecoratedClass();
 
-      const res = { end: sinon.stub(), statusCode: undefined };
+      const res = {};
+      res.end = sinon.stub();
+      res.write = sinon.stub();
+      res.writeHead = sinon.stub();
 
-      dummyResource.put(undefined, res).then(() => {}, () => {
-        assert.deepEqual(res.statusCode, 500);
+      return dummyResource.put(undefined, res).catch(() => {
+        sinon.assert.calledWith(res.writeHead, 500);
         sinon.assert.called(res.end);
-        done();
       });
     });
 
@@ -224,15 +231,18 @@ describe("ritley's decorators suite", () => {
 
       const dummyResource = new DecoratedClass();
 
-      const res = { end: sinon.stub(), write: sinon.stub(), statusCode: undefined };
+      const res = {};
+      res.end = sinon.stub();
+      res.write = sinon.stub();
+      res.writeHead = sinon.stub();
 
       dummyResource.delete(undefined, res);
 
       setTimeout(() => {
-        assert.deepEqual(res.statusCode, 500);
+        sinon.assert.calledWith(res.writeHead, 500);
         sinon.assert.called(res.end);
         done();
-      }, 10)
+      }, 1)
     });
 
   });
@@ -251,18 +261,20 @@ describe("ritley's decorators suite", () => {
 
     const result = { message: "result is wrong, but test right"};
 
-    it("should be able to resolve http request when returned promise rejects", done => {
+    it("should be able to resolve http request when returned promise rejects", () => {
       const DecoratedClass = decorateMethod(DummyResource, "post", Catch(HTTPVERBS.BadRequest, result));
 
       const dummyResource = new DecoratedClass();
 
-      const res = { end: sinon.stub(), write: sinon.stub(), statusCode: undefined };
+      const res = {};
+      res.end = sinon.stub();
+      res.write = sinon.stub();
+      res.writeHead = sinon.stub();
 
-      dummyResource.post(undefined, res).catch(() => {
-        assert.deepEqual(res.statusCode, 400);
+      return dummyResource.post(undefined, res).catch(() => {
+        sinon.assert.calledWith(res.writeHead, 400);
         sinon.assert.calledWith(res.write, JSON.stringify(result));
         sinon.assert.called(res.end);
-        done();
       });
     });
 
@@ -271,16 +283,19 @@ describe("ritley's decorators suite", () => {
 
       const dummyResource = new DecoratedClass();
 
-      const res = { end: sinon.stub(), write: sinon.stub(), statusCode: undefined };
+      const res = {};
+      res.end = sinon.stub();
+      res.write = sinon.stub();
+      res.writeHead = sinon.stub();
 
       dummyResource.put(undefined, res);
 
       setTimeout(() => {
-        assert.deepEqual(res.statusCode, 400);
+        sinon.assert.calledWith(res.writeHead, 400);
         sinon.assert.calledWith(res.write, JSON.stringify(result));
         sinon.assert.called(res.end);
         done();
-      }, 10)
+      }, 1);
     });
 
   });
@@ -308,11 +323,14 @@ describe("ritley's decorators suite", () => {
 
       const dummyResource = new DecoratedClass();
 
-      const res = { end: sinon.stub(), write: sinon.stub(), statusCode: undefined };
+      const res = {};
+      res.end = sinon.stub();
+      res.write = sinon.stub();
+      res.writeHead = sinon.stub();
 
       return dummyResource.post(undefined, res).then(() => {
-        assert.deepEqual(res.statusCode, 400);
-        sinon.assert.calledWith(res.write, JSON.stringify({ message: "zz is not defined"}));
+        sinon.assert.calledWith(res.writeHead, 400);
+        sinon.assert.calledWith(res.write, JSON.stringify({ error: "ReferenceError", message: "zz is not defined"}));
         sinon.assert.called(res.end);
       });
     });
@@ -322,12 +340,15 @@ describe("ritley's decorators suite", () => {
 
       const dummyResource = new DecoratedClass();
 
-      const res = { end: sinon.stub(), write: sinon.stub(), statusCode: undefined };
+      const res = {};
+      res.end = sinon.stub();
+      res.write = sinon.stub();
+      res.writeHead = sinon.stub();
 
       dummyResource.put(undefined, res);
 
-      assert.deepEqual(res.statusCode, 400);
-      sinon.assert.calledWith(res.write, JSON.stringify({ message: "zz is not defined"}));
+      sinon.assert.calledWith(res.writeHead, 400);
+      sinon.assert.calledWith(res.write, JSON.stringify({ error: "ReferenceError", message: "zz is not defined"}));
       sinon.assert.called(res.end);
     });
 
@@ -336,10 +357,13 @@ describe("ritley's decorators suite", () => {
 
       const dummyResource = new DecoratedClass();
 
-      const res = { end: sinon.stub(), write: sinon.stub(), statusCode: undefined };
+      const res = {};
+      res.end = sinon.stub();
+      res.write = sinon.stub();
+      res.writeHead = sinon.stub();
 
       assert.throws(() => dummyResource.pat(undefined, res), ReferenceError);
-      assert.deepEqual(res.statusCode, undefined);
+      sinon.assert.notCalled(res.writeHead);
       sinon.assert.notCalled(res.write);
       sinon.assert.notCalled(res.end);
     });
@@ -347,71 +371,69 @@ describe("ritley's decorators suite", () => {
 
   describe("named export `HTTP verbs`", () => {
 
-    const response = { end: () => {}, write: () => {} };
+    let res;
+
 
     beforeEach(() => {
-      sinon.stub(response, "end");
-      sinon.stub(response, "write");
-    });
-
-    afterEach(() => {
-      response.end.restore();
-      response.write.restore();
+      res = {};
+      res.end = sinon.stub();
+      res.write = sinon.stub();
+      res.writeHead = sinon.stub();
     });
 
     it("verb Ok", () => {
-      HTTPVERBS.Ok(response, "something");
-      assert.deepEqual(response.statusCode, 200);
-      sinon.assert.calledWith(response.write, '{"message":"something"}');
-      sinon.assert.called(response.end);
+      HTTPVERBS.Ok(res, "something");
+      sinon.assert.calledWith(res.writeHead, 200);
+      sinon.assert.calledWith(res.write, '{"message":"something"}');
+      sinon.assert.called(res.end);
     });
     it("verb Created", () => {
-      HTTPVERBS.Created(response, "something");
-      assert.deepEqual(response.statusCode, 201);
-      sinon.assert.calledWith(response.write, '{"message":"something"}');
-      sinon.assert.called(response.end);
+      HTTPVERBS.Created(res, "something");
+      sinon.assert.calledWith(res.writeHead, 201);
+      sinon.assert.calledWith(res.write, '{"message":"something"}');
+      sinon.assert.called(res.end);
     });
     it("verb NoContent", () => {
-      HTTPVERBS.NoContent(response, "something");
-      assert.deepEqual(response.statusCode, 204);
-      sinon.assert.calledWith(response.write, '{"message":"something"}');
-      sinon.assert.called(response.end);
+      HTTPVERBS.NoContent(res, "something");
+      sinon.assert.calledWith(res.writeHead, 204);
+      sinon.assert.calledWith(res.write, '{"message":"something"}');
+      sinon.assert.called(res.end);
     });
     it("verb BadRequest", () => {
-      HTTPVERBS.BadRequest(response, "something");
-      assert.deepEqual(response.statusCode, 400);
-      sinon.assert.calledWith(response.write, '{"message":"something"}');
-      sinon.assert.called(response.end);
+      HTTPVERBS.BadRequest(res, "something");
+      sinon.assert.calledWith(res.writeHead, 400);
+      sinon.assert.calledWith(res.write, '{"message":"something"}');
+      sinon.assert.called(res.end);
     });
     it("verb Unauthorized", () => {
-      HTTPVERBS.Unauthorized(response, "something");
-      assert.deepEqual(response.statusCode, 401);
-      sinon.assert.calledWith(response.write, '{"message":"something"}');
-      sinon.assert.called(response.end);
+      HTTPVERBS.Unauthorized(res, "something");
+      sinon.assert.calledWith(res.writeHead, 401);
+      sinon.assert.calledWith(res.write, '{"message":"something"}');
+      sinon.assert.called(res.end);
     });
     it("verb Forbidden", () => {
-      HTTPVERBS.Forbidden(response, "something");
-      assert.deepEqual(response.statusCode, 403);
-      sinon.assert.calledWith(response.write, '{"message":"something"}');
-      sinon.assert.called(response.end);
+      HTTPVERBS.Forbidden(res, "something");
+      sinon.assert.calledWith(res.writeHead, 403);
+      sinon.assert.calledWith(res.write, '{"message":"something"}');
+      sinon.assert.called(res.end);
     });
     it("verb MethodNotAllowed", () => {
-      HTTPVERBS.MethodNotAllowed(response, "something");
-      assert.deepEqual(response.statusCode, 405);
-      sinon.assert.calledWith(response.write, '{"message":"something"}');
-      sinon.assert.called(response.end);
+      HTTPVERBS.MethodNotAllowed(res, "something");
+      sinon.assert.calledWith(res.writeHead, 405);
+      sinon.assert.calledWith(res.write, '{"message":"something"}');
+      sinon.assert.called(res.end);
     });
     it("verb Conflict", () => {
-      HTTPVERBS.Conflict(response, "something");
-      assert.deepEqual(response.statusCode, 409);
-      sinon.assert.calledWith(response.write, '{"message":"something"}');
-      sinon.assert.called(response.end);
+      HTTPVERBS.Conflict(res, "something");
+      sinon.assert.calledWith(res.writeHead, 409);
+      sinon.assert.calledWith(res.write, '{"message":"something"}');
+      sinon.assert.called(res.end);
     });
     it("verb InternalServerError", () => {
-      HTTPVERBS.InternalServerError(response, "something");
-      assert.deepEqual(response.statusCode, 500);
-      sinon.assert.calledWith(response.write, '{"message":"something"}');
-      sinon.assert.called(response.end);
+      HTTPVERBS.InternalServerError(res, "something");
+      sinon.assert.calledWith(res.writeHead, 500);
+      sinon.assert.calledWith(res.write, '{"message":"something"}');
+      sinon.assert.called(res.end);
     });
   });
 });

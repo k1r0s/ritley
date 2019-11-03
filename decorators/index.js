@@ -65,11 +65,11 @@ export const Throws = (errorType, fn) => afterMethod(meta => {
   const [req, res] = meta.args;
   if (meta.exception && meta.exception instanceof errorType) {
     const exception = meta.handle();
-    fn(res, { error: errorType.name, message: exception.message });
+    fn(res, { error: exception.name, message: exception.message });
   } else if(meta.result && typeof meta.result.catch === "function") {
     meta.result = meta.result.catch(exception => {
       if (exception instanceof errorType) {
-        fn(res, { error: errorType.name, message: exception.message });
+        fn(res, { error: exception.name, message: exception.message });
       } else {
         throw exception;
       }
