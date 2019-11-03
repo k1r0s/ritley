@@ -81,7 +81,7 @@ describe("ritley's decorators suite", () => {
       dummyResource.get(req, res);
 
       sinon.assert.notCalled(res.end);
-      sinon.assert.calledWith(dummyResource.method1, req, res, { prop: "try", value: "1" });
+      sinon.assert.calledWith(dummyResource.method1, { params: { prop: "try", value: "1" }, ...req });
     });
 
     it("Method.get should handle same http verb within different methods", () => {
