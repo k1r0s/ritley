@@ -71,11 +71,11 @@ export const Throws = (errorType, fn) => afterMethod(meta => {
   const [req, res] = meta.args;
   if (meta.exception && meta.exception instanceof errorType) {
     const exception = meta.handle();
-    fn(res, { error: exception.name, message: exception.message });
+    fn(res, exception);
   } else if(meta.result && typeof meta.result.catch === "function") {
     meta.result = meta.result.catch(exception => {
       if (exception instanceof errorType) {
-        fn(res, { error: exception.name, message: exception.message });
+        fn(res, exception);
       } else {
         throw exception;
       }
@@ -109,13 +109,18 @@ export const Catch = (error, content) => afterMethod(meta => {
   }
 });
 
-const resolveMethod = (res, code, message) => {
+const resolveMethod = (res, code, data) => {
   if(res.headersSent) return;
   res.writeHead(code);
-  if(typeof message === "object") {
-    res.write(JSON.stringify(message));
-  } else if(typeof message === "string") {
-    res.write(JSON.stringify({ message }));
+  if(typeof data === "object") {
+    if(data instanceof Error) {
+      const { message, name } = data;
+      res.write(JSON.stringify({ error: name, message }));
+    } else {
+      res.write(JSON.stringify(data));
+    }
+  } else if(typeof data === "string") {
+    res.write(JSON.stringify({ message: data }));
   }
   res.end();
 }

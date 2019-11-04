@@ -119,11 +119,11 @@ var Throws = function Throws(errorType, fn) {
 
     if (meta.exception && meta.exception instanceof errorType) {
       var exception = meta.handle();
-      fn(res, { error: exception.name, message: exception.message });
+      fn(res, exception);
     } else if (meta.result && typeof meta.result.catch === "function") {
       meta.result = meta.result.catch(function (exception) {
         if (exception instanceof errorType) {
-          fn(res, { error: exception.name, message: exception.message });
+          fn(res, exception);
         } else {
           throw exception;
         }
@@ -172,13 +172,20 @@ var Catch = function Catch(error, content) {
   });
 };
 
-var resolveMethod = function resolveMethod(res, code, message) {
+var resolveMethod = function resolveMethod(res, code, data) {
   if (res.headersSent) return;
   res.writeHead(code);
-  if ((typeof message === "undefined" ? "undefined" : _typeof(message)) === "object") {
-    res.write(JSON.stringify(message));
-  } else if (typeof message === "string") {
-    res.write(JSON.stringify({ message: message }));
+  if ((typeof data === "undefined" ? "undefined" : _typeof(data)) === "object") {
+    if (data instanceof Error) {
+      var message = data.message,
+          name = data.name;
+
+      res.write(JSON.stringify({ error: name, message: message }));
+    } else {
+      res.write(JSON.stringify(data));
+    }
+  } else if (typeof data === "string") {
+    res.write(JSON.stringify({ message: data }));
   }
   res.end();
 };
