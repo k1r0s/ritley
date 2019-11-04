@@ -39,8 +39,8 @@ var Method = {
         var found = listeners.find(predicate);
         if (found) {
           req.params = predicate(found);
-          this[found.key].apply(this, argList);
-        } else BadRequest(res);
+          return this[found.key].apply(this, argList);
+        } else return BadRequest(res);
       };
       var list = { path: path, key: key };
       listeners.push(list);

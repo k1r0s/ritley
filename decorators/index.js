@@ -21,8 +21,8 @@ export const Method = {
       const found = listeners.find(predicate);
       if(found) {
         req.params = predicate(found);
-        this[found.key](...argList);
-      } else BadRequest(res);
+        return this[found.key](...argList);
+      } else return BadRequest(res);
     }
     const list = { path, key };
     listeners.push(list);
