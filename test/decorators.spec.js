@@ -39,7 +39,7 @@ describe("ritley's decorators suite", () => {
     });
 
     it("Dependency should be able to call kaop.inject.assign", () => {
-      Dependency("foo", providerStub)(function() {});
+      Dependency.assign(["foo", providerStub])(function() {});
       sinon.assert.calledWith(kaopTs.inject.assign, { foo: providerStub });
     });
 
@@ -47,7 +47,7 @@ describe("ritley's decorators suite", () => {
       kaopTs.inject.assign.restore();
 
       class Bar {}
-      const decoratedBar = Dependency("foo", providerStub)(Bar);
+      const decoratedBar = Dependency.assign(["foo", providerStub])(Bar);
 
       let barInstance = new decoratedBar;
       sinon.assert.called(providerStub);

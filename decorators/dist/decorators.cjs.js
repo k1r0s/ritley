@@ -10,10 +10,27 @@ var Path = _interopDefault(require('path-parser'));
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-var Dependency = function Dependency(prop, prov) {
-  var _inject$assign;
+var Dependency = {
+  assign: function assign() {
+    for (var _len = arguments.length, entries = Array(_len), _key = 0; _key < _len; _key++) {
+      entries[_key] = arguments[_key];
+    }
 
-  return kaopTs.beforeInstance(kaopTs.inject.assign((_inject$assign = {}, _inject$assign[prop] = prov, _inject$assign)));
+    return kaopTs.beforeInstance.apply(undefined, entries.map(function (entry) {
+      var _inject$assign;
+
+      return kaopTs.inject.assign((_inject$assign = {}, _inject$assign[entry[0]] = entry[1], _inject$assign));
+    }));
+  },
+  args: function args() {
+    for (var _len2 = arguments.length, providers = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+      providers[_key2] = arguments[_key2];
+    }
+
+    return kaopTs.beforeInstance.apply(undefined, providers.map(function (prov) {
+      return kaopTs.inject.args(prov);
+    }));
+  }
 };
 
 var Method = {
@@ -24,8 +41,8 @@ var Method = {
       if (!proto[method]) proto[method] = function () {
         var _this = this;
 
-        for (var _len = arguments.length, argList = Array(_len), _key = 0; _key < _len; _key++) {
-          argList[_key] = arguments[_key];
+        for (var _len3 = arguments.length, argList = Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
+          argList[_key3] = arguments[_key3];
         }
 
         var req = argList[0],

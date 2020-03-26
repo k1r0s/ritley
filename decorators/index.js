@@ -4,7 +4,10 @@ import Path from "path-parser";
 
 export { provider as Provider }
 
-export const Dependency = (prop, prov) => beforeInstance(inject.assign({ [prop]: prov }));
+export const Dependency = {
+  assign: (...entries) => beforeInstance(...entries.map(entry => inject.assign({ [entry[0]]: entry[1] }))),
+  args: (...providers) => beforeInstance(...providers.map(prov => inject.args(prov)))
+}
 
 export const Method = {
   _createMethodWrap: (method, path) => (proto, key, descriptor) => {
