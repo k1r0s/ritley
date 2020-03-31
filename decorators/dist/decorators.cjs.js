@@ -10,6 +10,11 @@ var Path = _interopDefault(require('path-parser'));
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
+// TODO: remove on the next version
+var reportException = function reportException(exception) {
+  return console.error(exception);
+};
+
 var Dependency = {
   assign: function assign() {
     for (var _len = arguments.length, entries = Array(_len), _key = 0; _key < _len; _key++) {
@@ -31,6 +36,10 @@ var Dependency = {
       return kaopTs.inject.args(prov);
     }));
   }
+};
+
+var DefaultExceptionHandler = function DefaultExceptionHandler(handler) {
+  return reportException = handler;
 };
 
 var Method = {
@@ -157,13 +166,13 @@ var Default = function Default(fn) {
 
     if (meta.exception) {
       var exception = meta.handle();
-      console.error(exception);
+      reportException(exception);
       InternalServerError(res);
     } else if (meta.result && typeof meta.result.then === "function") {
       meta.result.then(function (result) {
         return fn(res, result);
       }, function (exception) {
-        console.error(exception);
+        reportException(exception);
         InternalServerError(res);
       });
     } else {
@@ -237,6 +246,7 @@ var InternalServerError = function InternalServerError(res, content) {
 
 exports.Provider = kaopTs.provider;
 exports.Dependency = Dependency;
+exports.DefaultExceptionHandler = DefaultExceptionHandler;
 exports.Method = Method;
 exports.ReqTransformQuery = ReqTransformQuery;
 exports.ReqTransformBodySync = ReqTransformBodySync;

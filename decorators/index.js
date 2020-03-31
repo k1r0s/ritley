@@ -2,12 +2,17 @@ import url from "url";
 import { inject, provider, afterMethod, beforeMethod, beforeInstance } from "kaop-ts";
 import Path from "path-parser";
 
+// TODO: remove on the next version
+let reportException = exception => console.error(exception);
+
 export { provider as Provider }
 
 export const Dependency = {
   assign: (...entries) => beforeInstance(...entries.map(entry => inject.assign({ [entry[0]]: entry[1] }))),
   args: (...providers) => beforeInstance(...providers.map(prov => inject.args(prov)))
 }
+
+export const DefaultExceptionHandler = (handler) => reportException = handler;
 
 export const Method = {
   _createMethodWrap: (method, path) => (proto, key, descriptor) => {
@@ -90,11 +95,11 @@ export const Default = fn => afterMethod(meta => {
   const [req, res] = meta.args;
   if (meta.exception) {
     const exception = meta.handle();
-    console.error(exception);
+    reportException(exception);
     InternalServerError(res);
   } else if(meta.result && typeof meta.result.then === "function") {
     meta.result.then(result => fn(res, result), exception => {
-      console.error(exception);
+      reportException(exception);
       InternalServerError(res);
     });
   } else {
