@@ -1,5 +1,8 @@
 core/node_modules/
+core/dist/
 decorators/node_modules/
-default-adapter/node_modules/
+decorators/dist/
+standalone-adapter/node_modules/
+standalone-adapter/dist/
 example/node_modules/
 node_modules/

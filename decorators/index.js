@@ -119,16 +119,21 @@ export const Catch = (error, content) => afterMethod(meta => {
 
 const resolveMethod = (res, code, data) => {
   if(res.headersSent) return;
-  res.writeHead(code);
   if(typeof data === "object") {
+    let responseBody;
     if(data instanceof Error) {
       const { message, name } = data;
-      res.write(JSON.stringify({ error: name, message }));
+      responseBody = JSON.stringify({ error: name, message });
     } else {
-      res.write(JSON.stringify(data));
+      responseBody = JSON.stringify(data);
     }
-  } else if(typeof data === "string") {
-    res.write(JSON.stringify({ message: data }));
+    res.writeHead(code, {
+      "Content-Length": Buffer.byteLength(responseBody),
+      "Content-Type": "application/json; charset=utf-8"
+    })
+    res.write(responseBody);
+  } else {
+    res.writeHead(code);
   }
   res.end();
 }
