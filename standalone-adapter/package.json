@@ -10,7 +10,7 @@
   "author": "k1r0s",
   "license": "ISC",
   "peerDependencies": {
-    "ecstatic": "^3.3.0"
+    "ecstatic": "^4.1.4"
   },
   "devDependencies": {
     "babel-core": "^6.26.3",
@@ -20,6 +20,6 @@
   },
   "dependencies": {
     "@ritley/core": "^1.0.0",
-    "ecstatic": "^3.3.0"
+    "ecstatic": "^4.1.4"
   }
 }
