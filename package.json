@@ -1,6 +1,6 @@
 {
   "name": "ritley-lib",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "<p align=\"center\">   <a><img src=\"https://i.imgur.com/6BKD8jW.png\"></a>   <h2>Ritley JS</h2> </p>",
   "main": "index.js",
   "scripts": {
