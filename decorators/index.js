@@ -5,7 +5,18 @@ import Path from "path-parser";
 // TODO: remove on the next version
 let reportException = exception => console.error(exception);
 
-export { provider as Provider }
+export const Provider = {
+  singleton: (target) => {
+    let pr = provider.singleton(target);
+    pr._original = target;
+    return pr;
+  },
+  factory: (target) => {
+    let pr = provider.factory(target);
+    pr._original = target;
+    return pr;
+  }
+}
 
 export const Dependency = {
   assign: (...entries) => beforeInstance(...entries.map(entry => inject.assign({ [entry[0]]: entry[1] }))),
@@ -132,6 +143,9 @@ const resolveMethod = (res, code, data) => {
       "Content-Type": "application/json; charset=utf-8"
     })
     res.write(responseBody);
+  } else if(typeof data === "string") {
+    res.writeHead(code);
+    res.write(`{"message":"${data}"}`);
   } else {
     res.writeHead(code);
   }

@@ -13,9 +13,9 @@ const {
   Catch,
   Throws,
   ...HTTPVERBS
- } = require("../decorators");
+} = require("../decorators");
 
- const wrapInvoke = (klass, method) => (context, ...args) => klass.prototype[method].call(context, ...args);
+const wrapInvoke = (klass, method) => (context, ...args) => klass.prototype[method].call(context, ...args);
 
 const decorateMethod = (target, method, decorator) => {
   const descriptor = Object.getOwnPropertyDescriptor(target.prototype, method);
@@ -27,6 +27,19 @@ describe("ritley's decorators suite", () => {
     it("Provider should be available as an alias of kaop.provider", () => {
       assert(typeof Provider.singleton === "function");
       assert(typeof Provider.factory === "function");
+    })
+
+    it("Provider should preserve original declaration under _original", () => {
+      class Dummy {
+        aMethod() {
+          return 29;
+        }
+      }
+
+      const decorated = Provider.factory(Dummy);
+
+      assert(typeof decorated._original.prototype.aMethod === "function");
+      assert(decorated._original.name === Dummy.name);
     })
   });
 
